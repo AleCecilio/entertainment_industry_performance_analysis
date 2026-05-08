@@ -1,1 +1,1 @@
-from .data_loader import load_data_csv
+from .data_loader import load_data_csv, load_data_pkl

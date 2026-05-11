@@ -1,26 +1,46 @@
-# src/data_loader.py
+from pathlib import Path
 import pandas as pd
-import sqlite3
-import os
 
-def load_data_csv(file_path):
-    """
-    Carrega o dataset bruto e garante que os tipos básicos estão corretos.
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
-        
-    df = pd.read_csv(file_path, low_memory=False)
-    print(f"Dados carregados com sucesso! Formato: {df.shape}")
-    return df
 
-def load_data_pkl(file_path):
-    """
-    Carrega o dataset bruto e garante que os tipos básico estão corretos 
-    """
-    if not os.path.exists(file_path):
+def acao_pkl(file_path):
+    return pd.read_pickle(file_path)
+
+
+def acao_csv(file_path):
+    return pd.read_csv(file_path, low_memory=False)
+
+
+def load_data(file_path, tipo_arquivo):
+
+    file_path = Path(file_path)
+
+    if not file_path.exists():
         raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
-        
-    df = pd.read_pickle(file_path)
-    print(f"Dados carregados com sucesso! Formato: {df.shape}")
-    return df
+
+    match tipo_arquivo:
+
+        case 'pkl':
+            df = acao_pkl(file_path)
+
+            print(f"Dados PKL carregados! Formato: {df.shape}")
+
+            return df
+
+        case 'csv':
+            df = acao_csv(file_path)
+
+            print(f"Dados CSV carregados! Formato: {df.shape}")
+
+            return df
+
+        case 'both':
+            df_pkl = acao_pkl(file_path)
+            df_csv = acao_csv(file_path)
+
+            print(f"PKL carregado! Formato: {df_pkl.shape}")
+            print(f"CSV carregado! Formato: {df_csv.shape}")
+
+            return df_pkl, df_csv
+
+        case _:
+            raise ValueError("Tipo de arquivo não suportado!")

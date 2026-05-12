@@ -1,14 +1,14 @@
-from .utils import resumo_qualidade
-from .io import load_data, save_dataset
-from .view import (
+from .style_config import (
     CORES, 
     GRADIENTES, 
     MAPA_COLUNAS, 
     ESTILO_CABECALHO, 
-    FORMATADORES,
+    FORMATADORES
+)
+from .tables import (
     estilizar_tabela, 
     estilizar_resumo_qualidade, 
     destacar_anomalias, 
-    grafico_percentual_missing_data
-)
+) 
+from .plots import grafico_percentual_missing_data
 

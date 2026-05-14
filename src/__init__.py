@@ -8,7 +8,10 @@ from .view import (
     FORMATADORES,
     estilizar_tabela, 
     estilizar_resumo_qualidade, 
+    estilizar_metricas,
     destacar_anomalias, 
+    estilizar_comparativo,
+    estilizar_matriz_correlacao,
     grafico_percentual_missing_data
 )
 

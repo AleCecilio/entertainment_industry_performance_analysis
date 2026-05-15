@@ -164,7 +164,9 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )
 
@@ -215,9 +217,12 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )
+
 
 
 def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_linhas=None, caption=None):
@@ -261,9 +266,12 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )
+
 
 
 def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valores_anomalos=None, qtd_linhas=None, caption=None):
@@ -320,9 +328,12 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )
+
 
 
 
@@ -365,9 +376,12 @@ def estilizar_comparativo(df, col_grupo, colunas_metrica, qtd_linhas=None, capti
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )
+
 
 def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz de Correlação)"):
     """
@@ -402,6 +416,8 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if pd.isna(v) else ''
+            if (not isinstance(v, (list, dict)) 
+            and pd.isna(v)) 
+            else ''
         ).format(formatadores_ativos)
     )

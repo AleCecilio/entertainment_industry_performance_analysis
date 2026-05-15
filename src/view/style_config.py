@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 # =====================================================================
@@ -136,7 +137,7 @@ def criar_formatador(padrao_string):
     """
     def formatar(valor):
         if pd.isna(valor) or valor == "":
-            return "—"
+            return np.nan
         try:
             # Força a conversão para float para aplicar a regra matemática 'f'
             return padrao_string.format(float(valor))

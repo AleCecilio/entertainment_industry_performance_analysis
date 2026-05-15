@@ -81,6 +81,29 @@ def ajustar_tamanho_df (df_base, qtd_linhas):
             df_base.tail(5)
         ])
 
+def config_celula_anomala(valor,valores_anomalos):
+    # Modo Cirúrgico: Monta a string CSS baseada no dicionário de cores
+    css_anomalia = (
+        f"background-color: {
+            CORES['anomalia']['background-color']
+        }; color: {
+            CORES['anomalia']['color']
+        };"
+    )
+
+    #Checa se é nulo (caso 'NaN' ou None tenha sido passado na lista)
+    if pd.isna(valor):
+        return css_anomalia if (
+            None in valores_anomalos 
+            or "NaN" 
+            in valores_anomalos
+        ) else ""
+    
+    # Checa o valor exato ou a conversão dele em texto (ex: listas '[]')
+    if valor in valores_anomalos or str(valor).strip() in valores_anomalos:
+        return css_anomalia
+        
+    return ""
 
 # =====================================================================
 #   TEMPLATES DE VISUALIZAÇÃO
@@ -139,7 +162,9 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
     return controle_largura_max(
         df_foco,
         estilo.map(
-            lambda v: 'color: #888888; font-style: italic;' if pd.isna(v) else ''
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
         ).format(formatadores_ativos)
     )
 
@@ -179,13 +204,20 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
     if col_quantidade and col_quantidade in df.columns:
         estilo = estilo.background_gradient(cmap=GRADIENTES['volume'], subset=[col_quantidade])
 
-    formatadores = {}
+    formatadores_ativos = {}
     if col_percentual in df.columns:
-        formatadores[col_percentual] = '{:.2f}%'
+        formatadores_ativos[col_percentual] = '{:.2f}%'
     if col_quantidade and col_quantidade in df.columns:
-        formatadores[col_quantidade] = '{:,.0f}'
+        formatadores_ativos[col_quantidade] = '{:,.0f}'
 
-    return controle_largura_max(df_foco, estilo.format(formatadores))
+    return controle_largura_max(
+        df_foco,
+        estilo.map(
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
+        ).format(formatadores_ativos)
+    )
 
 
 def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_linhas=None, caption=None):
@@ -227,12 +259,14 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
     return controle_largura_max(
         df_foco,
         estilo.map(
-            lambda v: 'color: #888888; font-style: italic' if pd.isna(v) else ''
-        ).format(formatter=formatadores_ativos)
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
+        ).format(formatadores_ativos)
     )
 
 
-def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None, qtd_linhas=None, caption=None):
+def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valores_anomalos=None, qtd_linhas=None, caption=None):
     """
     Template para inspeção de anomalias: destaca colunas problemáticas em vinho escuro
     e exibe colunas de contexto em tom neutro.
@@ -262,19 +296,32 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None, qtd
 
     if caption:
         estilo = estilo.set_caption(caption)
+    
 
-    for col in colunas_destaque:
-        if col in df_foco.columns:
-            estilo = estilo.set_properties(subset=[col], **CORES['anomalia'])
+    if valores_anomalos is None:
+        for col in colunas_destaque:
+            if col in df_foco.columns:
+                estilo = estilo.set_properties(subset=[col], **CORES['anomalia'])
+    else:
+        cols_validas = [c for c in colunas_destaque if c in df_foco.columns]
+        if cols_validas:
+            estilo = estilo.map(
+                config_celula_anomala, 
+                valores_anomalos=valores_anomalos,
+                subset=cols_validas
+            )
 
     formatadores_ativos = {
         col: fmt for col, fmt in FORMATADORES.items() if col in df_foco.columns
     }
+
     return controle_largura_max(
-        df_foco, 
+        df_foco,
         estilo.map(
-            lambda v: 'color: #888888; font-style: italic' if pd.isna(v) else ''
-        ).format(formatter=formatadores_ativos)
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
+        ).format(formatadores_ativos)
     )
 
 
@@ -315,7 +362,11 @@ def estilizar_comparativo(df, col_grupo, colunas_metrica, qtd_linhas=None, capti
 
     return controle_largura_max(
         df_foco,
-        estilo.format(formatter=formatadores_ativos)
+        estilo.map(
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
+        ).format(formatadores_ativos)
     )
 
 def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz de Correlação)"):
@@ -336,7 +387,7 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
         
     # Travar vmin=-1 e vmax=1 é a regra de ouro para heatmaps de correlação perfeitos
     estilo = estilo.background_gradient(
-        cmap=GRADIENTES.get('correlacao', 'RdBu_r'), 
+        cmap=GRADIENTES['correlacao'], 
         vmin=-1.0, 
         vmax=1.0
     )
@@ -347,8 +398,10 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
 
 
     return controle_largura_max(
-        df_corr, 
+        df_foco,
         estilo.map(
-            lambda v: 'color: #888888; font-style: italic;' if pd.isna(v) else ''
-        ).format(formatter=formatadores_ativos)
+            lambda v: 'color: #888888;'
+            'font-style: italic; '
+            if pd.isna(v) else ''
+        ).format(formatadores_ativos)
     )

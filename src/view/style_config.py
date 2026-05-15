@@ -14,8 +14,6 @@ CORES = {
     'booleano':      {'background-color': '#C9ADA7', 'color': 'black'},  # Rosa Acinzentado — flags binárias
     'anomalia':      {'background-color': '#7B2D2D', 'color': 'white'},  # Vinho — nulos, outliers
     'neutro':        {'background-color': '#D8E2DC', 'color': 'black'},  # Verde Claro — sem categoria
-    
-    # 🎨 NOVAS CORES ANALÍTICAS E DE CONTEXTO
     'volume':        {'background-color': '#457B9D', 'color': 'white'},  # Azul Aço — Contagens absolutas
     'proporcao':     {'background-color': '#52796F', 'color': 'white'},  # Verde Sálvia — Porcentagens
     'descritivo':    {'font-style': 'italic'},                           # Apenas itálico para sinopses (sem fundo)
@@ -31,7 +29,7 @@ GRADIENTES = {
     'score':      'YlOrRd',
     'neutro':     'Blues',
     'divergente': 'RdYlGn',  # útil para ROI (negativo → positivo)
-    'correlacao': 'RdBu_r' 
+    'correlacao': 'BrBG' 
 }
 
 

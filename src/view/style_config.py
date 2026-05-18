@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 # =====================================================================
@@ -14,8 +15,6 @@ CORES = {
     'booleano':      {'background-color': '#C9ADA7', 'color': 'black'},  # Rosa Acinzentado — flags binárias
     'anomalia':      {'background-color': '#7B2D2D', 'color': 'white'},  # Vinho — nulos, outliers
     'neutro':        {'background-color': '#D8E2DC', 'color': 'black'},  # Verde Claro — sem categoria
-    
-    # 🎨 NOVAS CORES ANALÍTICAS E DE CONTEXTO
     'volume':        {'background-color': '#457B9D', 'color': 'white'},  # Azul Aço — Contagens absolutas
     'proporcao':     {'background-color': '#52796F', 'color': 'white'},  # Verde Sálvia — Porcentagens
     'descritivo':    {'font-style': 'italic'},                           # Apenas itálico para sinopses (sem fundo)
@@ -31,7 +30,7 @@ GRADIENTES = {
     'score':      'YlOrRd',
     'neutro':     'Blues',
     'divergente': 'RdYlGn',  # útil para ROI (negativo → positivo)
-    'correlacao': 'RdBu_r' 
+    'correlacao': 'BrBG' 
 }
 
 
@@ -138,7 +137,7 @@ def criar_formatador(padrao_string):
     """
     def formatar(valor):
         if pd.isna(valor) or valor == "":
-            return "—"
+            return np.nan
         try:
             # Força a conversão para float para aplicar a regra matemática 'f'
             return padrao_string.format(float(valor))

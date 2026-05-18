@@ -10,6 +10,9 @@ def acao_csv(df,caminho_base, index):
     # Usamos utf-8-sig para garantir que acentos funcionem no Excel
     df.to_csv(caminho_base.with_suffix('.csv'), index=index, encoding='utf-8-sig')
 
+def acao_parquet(df, caminho_base, index):
+    df.to_parquet(caminho_base.with_suffix('.parquet'), index=index)
+
 
 def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both', index=False):
     """
@@ -36,10 +39,17 @@ def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both
         case 'csv':
             acao_csv(df,caminho_base, index)
             print(f"Sucesso! Ficheiro guardado em '{caminho_base}.csv'")
-        case 'both':
+        case 'parquet':
+            acao_parquet(df,caminho_base,index)
+            print(f"Sucesso! Ficheiro guardado em '{caminho_base}.parquet'")
+        case 'all':
             acao_pkl(df,caminho_base)
             acao_csv(df,caminho_base, index)
-            print(f"Sucesso! Ficheiro guardado em '{caminho_base}.pkl' e '{caminho_base}.csv' ")
+            acao_parquet(df,caminho_base,index)
+            print("Sucesso! Ficheiro guardado em")
+            print(f"\n{caminho_base}.pkl")
+            print(f"\n{caminho_base}.csv") 
+            print(f"\n{caminho_base}.parquet")
         case _:
             print("Tipo de Arquivo Não Especificado!")
     

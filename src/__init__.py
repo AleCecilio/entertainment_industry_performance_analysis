@@ -1,5 +1,10 @@
-from .utils import resumo_qualidade
 from .io import load_data, save_dataset
+from .utils import (
+    resumo_qualidade, 
+    extrair_dicionario, 
+    extrair_lista_dicts, 
+    explodir_dataset
+)
 from .view import (
     CORES, 
     GRADIENTES, 

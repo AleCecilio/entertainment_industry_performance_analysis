@@ -13,5 +13,10 @@ from .tables import (
     estilizar_comparativo,
     estilizar_matriz_correlacao
 ) 
-from .plots import grafico_percentual_missing_data
-
+from .plots import (
+    grafico_percentual_missing_data,
+    grafico_distribuicao_numerica,
+    grafico_top_categorias,
+    grafico_tamanho_listas,
+    grafico_presenca_chaves_dict
+)

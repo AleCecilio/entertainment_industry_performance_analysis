@@ -68,3 +68,160 @@ def grafico_percentual_missing_data(df, tamanho_figura=None, polegadas=None, wid
     sns.despine(left=True, bottom=True)
     plt.tight_layout()
     plt.show()
+
+# =====================================================================
+# GRÁFICOS NUMÉRICOS (O Combo do Skew e Kurtosis)
+# =====================================================================
+
+def grafico_distribuicao_numerica(df, coluna, titulo=None, cor="#2b5b84"):
+    """
+    Combina um Boxplot (para mostrar os outliers detectados pelo IQR) 
+    e um Histograma com curva KDE (para mostrar o skew e kurtosis).
+    """
+    fig, (ax_box, ax_hist) = plt.subplots(
+        2, 1, 
+        figsize=(10, 6), 
+        sharex=True, 
+        gridspec_kw={"height_ratios": (0.2, 0.8)}
+    )
+    
+    # Gráfico 1: Boxplot (Cima) - Foco em Outliers
+    sns.boxplot(x=df[coluna], ax=ax_box, color=cor, fliersize=4)
+    ax_box.set(xlabel='') # Esconde o texto do eixo X no boxplot
+    
+    # Gráfico 2: Histograma + Curva de Densidade (Baixo) - Foco na Distribuição
+    sns.histplot(x=df[coluna], ax=ax_hist, color=cor, kde=True, bins=30)
+    
+    # Estilização
+    titulo_real = titulo if titulo else f"Distribuição da Variável: {coluna}"
+    ax_box.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
+    ax_hist.set_xlabel(coluna.capitalize(), fontsize=12)
+    ax_hist.set_ylabel("Frequência", fontsize=12)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+# =====================================================================
+# GRÁFICOS CATEGÓRICOS (O Combo da Entropia e Market Share)
+# =====================================================================
+
+def grafico_top_categorias(relatorio_metrica, coluna_nome, titulo=None, cor_barra="#d9534f"):
+    """
+    Consome DIRETAMENTE o dicionário gerado pelo seu arquivo metrics.py
+    e plota as categorias em um gráfico de barras horizontais super legível.
+    """
+    # Extrai o DataFrame de top_values que o metrics.py gerou
+    if coluna_nome not in relatorio_metrica:
+        print(f"Erro: A coluna '{coluna_nome}' não está no relatório fornecido.")
+        return
+        
+    df_plot = relatorio_metrica[coluna_nome]['top_values']
+    
+    fig, ax = plt.subplots(figsize=(10, 5))
+    
+    # Plota barras horizontais (mais fácil para ler textos longos como Gêneros)
+    sns.barplot(
+        x='pct_%', 
+        y=df_plot.index, 
+        data=df_plot, 
+        color=cor_barra, 
+        ax=ax
+    )
+    
+    # Adiciona os números em cima de cada barra para não precisarmos olhar o eixo X
+    for p in ax.patches:
+        width = p.get_width()
+        ax.annotate(f'{width}%', 
+                    (width + 0.5, p.get_y() + p.get_height() / 2.), 
+                    ha='left', va='center', fontsize=10, fontweight='bold', color='#333333')
+
+    # Estilização
+    titulo_real = titulo if titulo else f"Top Categorias: {coluna_nome}"
+    ax.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel("Participação no Dataset (%)", fontsize=12)
+    ax.set_ylabel("") # Remove o título do eixo Y para ficar mais limpo
+    
+    # Pega o valor da entropia só para colocar uma legenda inteligente
+    entropia = relatorio_metrica[coluna_nome]['entropy_norm']
+    ax.text(0.95, 0.05, f'Entropia (Caos): {entropia}', 
+            transform=ax.transAxes, ha='right', fontsize=10, color='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# =====================================================================
+# GRÁFICOS PARA LISTAS (Foco no Tamanho/Volume)
+# =====================================================================
+
+def grafico_tamanho_listas(df, coluna, titulo=None, cor="#f0ad4e"):
+    """
+    Mostra a distribuição do tamanho das listas em uma coluna.
+    Ex: Quantos filmes têm 1 gênero? Quantos têm 2? Quantos não têm nenhum (0)?
+    """
+    # Calcula o tamanho de cada lista (se for nulo, conta como 0)
+    tamanhos = df[coluna].dropna().apply(len)
+    
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    # Usamos countplot porque o tamanho das listas costuma ser números inteiros pequenos (0, 1, 2, 3...)
+    sns.countplot(x=tamanhos, color=cor, ax=ax)
+    
+    # Adiciona o número exato em cima de cada barra
+    for p in ax.patches:
+        height = p.get_height()
+        if height > 0: # Só anota se tiver algo
+            ax.annotate(f'{int(height)}', 
+                        (p.get_x() + p.get_width() / 2., height), 
+                        ha='center', va='bottom', fontsize=10, fontweight='bold', color='#555555')
+
+    titulo_real = titulo if titulo else f"Quantidade de Itens por Linha: {coluna}"
+    ax.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel(f"Número de itens na lista de {coluna}", fontsize=12)
+    ax.set_ylabel("Quantidade de Filmes", fontsize=12)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+# =====================================================================
+# GRÁFICOS PARA DICIONÁRIOS (Foco na Presença de Chaves)
+# =====================================================================
+
+def grafico_presenca_chaves_dict(relatorio_metrica, coluna_nome, titulo=None, cor="#5cb85c"):
+    """
+    Consome o relatório do dict_column_summary e plota um gráfico de barras 
+    mostrando a porcentagem de presença de cada chave dentro do dicionário.
+    """
+    if coluna_nome not in relatorio_metrica or 'key_summary' not in relatorio_metrica[coluna_nome]:
+        print(f"Erro: Relatório inválido para a coluna de dicionário '{coluna_nome}'.")
+        return
+        
+    df_plot = relatorio_metrica[coluna_nome]['key_summary'].reset_index()
+    
+    # Ordena para a chave que mais aparece ficar no topo
+    df_plot = df_plot.sort_values(by='presence_%', ascending=False)
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    sns.barplot(x='presence_%', y='key', data=df_plot, color=cor, ax=ax)
+    
+    # Anota a porcentagem
+    for p in ax.patches:
+        width = p.get_width()
+        ax.annotate(f'{width}%', 
+                    (width + 0.5, p.get_y() + p.get_height() / 2.), 
+                    ha='left', va='center', fontsize=10, fontweight='bold', color='#333333')
+
+    titulo_real = titulo if titulo else f"Presença de Atributos (Dict): {coluna_nome}"
+    ax.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel("Frequência de Aparição (%)", fontsize=12)
+    ax.set_ylabel("Chaves do Dicionário", fontsize=12)
+    
+    # Mostra a % geral de dados nulos na coluna inteira
+    nulos = relatorio_metrica[coluna_nome]['null_%']
+    ax.text(0.95, 0.05, f'Dados totalmente nulos (Vazios): {nulos}%', 
+            transform=ax.transAxes, ha='right', fontsize=10, color='red')
+    
+    plt.tight_layout()
+    plt.show()

@@ -1,22 +1,9 @@
-from .io import load_data, save_dataset
-from .utils import (
-    resumo_qualidade, 
-    extrair_dicionario, 
-    extrair_lista_dicts, 
-    explodir_dataset
-)
-from .view import (
-    CORES, 
-    GRADIENTES, 
-    MAPA_COLUNAS, 
-    ESTILO_CABECALHO, 
-    FORMATADORES,
-    estilizar_tabela, 
-    estilizar_resumo_qualidade, 
-    estilizar_metricas,
-    destacar_anomalias, 
-    estilizar_comparativo,
-    estilizar_matriz_correlacao,
-    grafico_percentual_missing_data
-)
+# src/__init__.py
 
+"""
+Pacote principal (Source) do projeto de Análise do TMDB.
+Módulos disponíveis:
+- io: Carregamento e salvamento de dados.
+- utils: Métricas matemáticas, estatística e engenharia de features.
+- view: Estilização de tabelas e plotagem de gráficos.
+"""

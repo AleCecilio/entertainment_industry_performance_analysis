@@ -11,7 +11,8 @@ from .tables import (
     estilizar_metricas,
     destacar_anomalias, 
     estilizar_comparativo,
-    estilizar_matriz_correlacao
+    estilizar_matriz_correlacao,
+    estilizar_relatorio_categorias
 ) 
 from .plots import (
     grafico_percentual_missing_data,

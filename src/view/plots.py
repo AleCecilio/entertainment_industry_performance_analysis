@@ -2,14 +2,32 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 # =====================================================================
-#   Plots 
+#   Variaveis Globais
 # =====================================================================
 
 FIGSIZE_DEFALT = (12, 8)
 DPI_DEFALT = 120
 WIDTH_DEFALT = 0.8
+
+# =====================================================================
+#   Funções de Auxílio
+# =====================================================================
+
+# Transforma 1.000.000 em "1M" e 1.000.000.000 em "1B"
+def formatar_dinheiro(x, pos):
+    if x >= 1e9:
+        return f'${x*1e-9:.1f}B'
+    elif x >= 1e6:
+        return f'${x*1e-6:.0f}M'
+    elif x >= 1e3:
+        return f'${x*1e-3:.0f}K'
+    return f'${x:.0f}'
+# =====================================================================
+#   Plots 
+# =====================================================================
 
 def grafico_percentual_missing_data(df, tamanho_figura=None, polegadas=None, width=None):
     """
@@ -73,30 +91,74 @@ def grafico_percentual_missing_data(df, tamanho_figura=None, polegadas=None, wid
 # GRÁFICOS NUMÉRICOS (O Combo do Skew e Kurtosis)
 # =====================================================================
 
-def grafico_distribuicao_numerica(df, coluna, titulo=None, cor="#2b5b84"):
+def grafico_distribuicao_numerica(
+        df, 
+        coluna, 
+        titulo=None,  
+        tamanho_figura=None, 
+        polegadas=None,
+        width=None,
+        usar_log=False,
+        formato_moeda=False
+    ):
     """
     Combina um Boxplot (para mostrar os outliers detectados pelo IQR) 
     e um Histograma com curva KDE (para mostrar o skew e kurtosis).
     """
+
+    if tamanho_figura is None:
+        tamanho_figura = FIGSIZE_DEFALT
+    
+    if polegadas is None:
+        polegadas = DPI_DEFALT
+
+    if width is None:
+        width = WIDTH_DEFALT
+
     fig, (ax_box, ax_hist) = plt.subplots(
         2, 1, 
-        figsize=(10, 6), 
-        sharex=True, 
-        gridspec_kw={"height_ratios": (0.2, 0.8)}
+        figsize=tamanho_figura,
+        dpi=polegadas,
+        sharex=True,
+        gridspec_kw={"height_ratios": (0.3, 0.7)}
     )
+
+    x_dados = df[coluna].replace(0, np.nan).dropna() if usar_log else df[coluna].dropna()
     
     # Gráfico 1: Boxplot (Cima) - Foco em Outliers
-    sns.boxplot(x=df[coluna], ax=ax_box, color=cor, fliersize=4)
-    ax_box.set(xlabel='') # Esconde o texto do eixo X no boxplot
+    sns.boxplot(
+        x=x_dados, 
+        ax=ax_box, 
+        color='#1E2780', 
+        fliersize=3, 
+        width=width
+    )
+    ax_box.set(xlabel='') 
     
     # Gráfico 2: Histograma + Curva de Densidade (Baixo) - Foco na Distribuição
-    sns.histplot(x=df[coluna], ax=ax_hist, color=cor, kde=True, bins=30)
+    sns.histplot(
+        x=x_dados, 
+        ax=ax_hist, 
+        color='#1E2780', 
+        kde=True, 
+        bins=30, 
+        log_scale=usar_log
+)
+    
+    if formato_moeda:
+        formatter = ticker.FuncFormatter(formatar_dinheiro)
+        ax_hist.xaxis.set_major_formatter(formatter)
     
     # Estilização
-    titulo_real = titulo if titulo else f"Distribuição da Variável: {coluna}"
+    titulo_real = titulo if titulo else f"Distribuição: {coluna.capitalize()}"
     ax_box.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
     ax_hist.set_xlabel(coluna.capitalize(), fontsize=12)
-    ax_hist.set_ylabel("Frequência", fontsize=12)
+    ax_hist.set_ylabel("Quantidade de Filmes", fontsize=12)
+    
+    # Limpeza visual
+    sns.despine(left=True, bottom=False)
+    ax_box.spines['bottom'].set_visible(False)
+    ax_box.tick_params(bottom=False)
     
     plt.tight_layout()
     plt.show()

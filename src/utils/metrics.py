@@ -20,11 +20,11 @@ def numeric_summary(df, cols=None):
     if not cols:
         return pd.DataFrame()
 
-    records = []
+    relatorio = []
     for col in cols:
         if col not in df.columns:
             continue
-            
+
         s = df[col].dropna()
         if s.empty:
             continue
@@ -33,9 +33,9 @@ def numeric_summary(df, cols=None):
         iqr = q3 - q1
         fence_low  = q1 - 1.5 * iqr
         fence_high = q3 + 1.5 * iqr
-        outlier_mask = (s < fence_low) | (s > fence_high)
+        outlier_mask = (s < fence_low) | (s> fence_high)
 
-        records.append({
+        relatorio.append({
             'column':        col,
             'mean':          s.mean(),
             'median':        s.median(),
@@ -49,66 +49,97 @@ def numeric_summary(df, cols=None):
             'outlier_%':     (outlier_mask.mean() * 100),
         })
 
-    if not records:
+    if not relatorio:
         return pd.DataFrame()
 
     return (
-        pd.DataFrame(records)
+        pd.DataFrame(relatorio)
         .set_index('column')
         .sort_values('mean', ascending=False)
     )
 
 
-# =====================================================================
-# ANÁLISE UNIVARIADA — COLUNAS CATEGÓRICAS
-# =====================================================================
-
-def categorical_summary(df, cols=None, top_n=10):
+def categorical_summary(df, cols = None, top_n = 10):
     """
-    Resumo analítico para colunas categóricas.
-    Se 'cols' não for passado, detecta automaticamente texto e booleanos.
+    Resumo univariado unificado para colunas categóricas simples ou em formato
+    de lista/array (incluindo np.ndarray gerados pela leitura de .parquet).
     """
     if cols is None:
-        cols = df.select_dtypes(include=['object', 'category', 'string', 'boolean']).columns.tolist()
+        cols = df.select_dtypes(include=["object", "category", "string", "boolean"]).columns.tolist()
 
     if isinstance(cols, str):
         cols = [cols]
 
     if not cols:
-        return {"erro": "Nenhuma coluna categórica encontrada."}
+        return pd.DataFrame()
 
-    resultado_geral = {}
+    relatorio = []
 
     for col in cols:
         if col not in df.columns:
             continue
-            
+
         s = df[col].dropna()
         if s.empty:
             continue
 
-        freq = s.value_counts()
-        top_freq = freq.iloc[:top_n]
-        top_pct = (top_freq / len(s) * 100).round(2)
+        # --- Triagem: detecta se a coluna guarda estruturas unhashable ---
+        primeiro_valor = s.iloc[0]
+        try:
+            hash(primeiro_valor)
+            is_complex = False
+        except TypeError:
+            is_complex = True
 
-        # Entropia de Shannon normalizada via Scipy
+        # --- Ignora strings sujas de JSON ---
+        if not is_complex and isinstance(primeiro_valor, str) and primeiro_valor.lstrip().startswith(("[", "{")):
+            continue
+
+        # --- Frequência ---
+        if is_complex:
+            freq = s.explode().dropna().value_counts()
+        else:
+            freq = s.value_counts()
+
+        if freq.empty:
+            continue
+
+        # --- Entropia de Shannon normalizada ---
         probs = freq / freq.sum()
         entropy_val = stats.entropy(probs, base=2)
-        max_entropy = np.log2(len(freq)) if len(freq) > 1 else 1
-        entropy_norm = round(entropy_val / max_entropy, 2) if max_entropy > 0 else 0
+        max_entropy = np.log2(len(freq)) if len(freq) > 1 else 1.0
+        entropy_norm = round(entropy_val / max_entropy, 4) if max_entropy > 0 else 0.0
 
-        resultado_geral[col] = {
-            'total_valid_rows': len(s),
-            'unique_categories': len(freq),
-            'entropy_norm': entropy_norm,
-            'top_values': pd.DataFrame({
-                'count': top_freq.values,
-                'pct_%': top_pct.values,
-            }, index=top_freq.index)
-        }
+        # --- Top N formatado com bullet points verticais ---
+        top_freq = freq.iloc[:top_n]
+        top_pct = (top_freq / len(s) * 100).round(1)
 
-    return resultado_geral
+        top_values_count = "\n".join(
+            f"• {idx} ({count})"
+            for idx, count in zip(top_freq.index, top_freq.values)
+        )
+        top_values_pct = "\n".join(
+            f"• {idx} ({pct}%)"
+            for idx, pct in zip(top_pct.index, top_pct.values)
+        )
 
+        relatorio.append({
+            "column":           col,
+            "total_valid_rows": len(s),
+            "unique_categories": len(freq),
+            "entropy_norm":     entropy_norm,
+            "top_values_count": top_values_count,
+            "top_values_pct_%": top_values_pct,
+        })
+
+    if not relatorio:
+        return pd.DataFrame()
+
+    return (
+        pd.DataFrame(relatorio)
+        .set_index("column")
+        .sort_values("entropy_norm", ascending=False)
+    )
 
 # =====================================================================
 # ANÁLISE UNIVARIADA — MÚLTIPLOS ARQUIVOS EXPLODIDOS
@@ -133,62 +164,6 @@ def exploded_files_summary(dataframes_dict, top_n=10):
                 relatorio_geral[col_name] = resumo_temp.get(cols_cand[0])
                 
     return relatorio_geral
-
-
-# =====================================================================
-# ANÁLISE UNIVARIADA — COLUNAS DE LISTAS (CAMADA INTERIM)
-# =====================================================================
-
-def list_column_summary(df, cols=None, top_n=10):
-    """
-    Resumo univariado para colunas cujos valores são listas Python nativas.
-    Se 'cols' não for passado, detecta automaticamente as listas.
-    """
-    if cols is None:
-        cols = _detect_list_cols(df)
-        
-    if isinstance(cols, str):
-        cols = [cols]
-
-    if not cols:
-        return {"erro": "Nenhuma coluna de lista encontrada."}
-
-    result = {}
-    for col in cols:
-        if col not in df.columns:
-            continue
-            
-        s = df[col].dropna()
-        if s.empty:
-            continue
-
-        sizes = s.apply(len)
-        exploded = s.explode().dropna()
-        freq = exploded.value_counts()
-
-        top_freq = freq.iloc[:top_n]
-        top_pct  = (top_freq / len(df) * 100).round(2)
-
-        result[col] = {
-            'list_size_stats': pd.DataFrame({
-                'value': {
-                    'min':    round(sizes.min()),
-                    'max':    round(sizes.max()),
-                    'mean':   round(sizes.mean()),
-                    'median': round(sizes.median()),
-                    'std':    round(sizes.std()),
-                }
-            }),
-            'empty_%':       round((sizes == 0).mean() * 100),
-            'single_item_%': round((sizes == 1).mean() * 100),
-            'unique_values': freq.nunique(),
-            'top_values':    pd.DataFrame({
-                'count': top_freq.values,
-                'pct_%': top_pct.values,
-            }, index=top_freq.index),
-        }
-
-    return result
 
 
 # =====================================================================

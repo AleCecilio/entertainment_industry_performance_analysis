@@ -7,22 +7,22 @@ from scipy import stats
 # FUNÇÕES AUXILIARES — cada uma retorna uma Série com sufixo no índice
 # =====================================================================
 
-def data_missing_nan(df):
+def _data_missing_nan(df):
     n = df.isnull().sum()
     n.index = n.index + ' (Valores NaN)'
     return n
 
-def data_missing_numeric(df):
+def _data_missing_numeric(df):
     n = (df.select_dtypes(include='number') == 0).sum()
     n.index = n.index + ' (Zeros - Numérico)'
     return n
 
-def data_missing_numeric_obj(df):
+def _data_missing_numeric_obj(df):
     n = (df == '0').sum()
     n.index = n.index + ' (Zeros - Texto)'
     return n
 
-def data_missing_list(df):
+def _data_missing_list(df):
     n = (df == '[]').sum()
     n.index = n.index + ' (Listas Vazias)'
     return n
@@ -32,10 +32,10 @@ def data_missing_list(df):
 # MAPA: tipo (string) → função correspondente
 # =====================================================================
 _TIPOS_MISSING = {
-    'nan':         data_missing_nan,
-    'numeric':     data_missing_numeric,
-    'numeric_obj': data_missing_numeric_obj,
-    'list':        data_missing_list,
+    'nan':         _data_missing_nan,
+    'numeric':     _data_missing_numeric,
+    'numeric_obj': _data_missing_numeric_obj,
+    'list':        _data_missing_list,
 }
 
 _TIPOS_DEFAULT = ['nan', 'numeric', 'numeric_obj', 'list']

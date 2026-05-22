@@ -5,7 +5,7 @@ import ast
 # =====================================================================
 # FUNÇÃO BASE DE PARSING (O DESPERTADOR DE DADOS)
 # =====================================================================
-def converter_para_objeto(valor):
+def _converter_para_objeto(valor):
     if pd.isna(valor) or valor in ['[]', '{}', '0', 0, '']:
         return None
         
@@ -26,7 +26,7 @@ def extrair_dicionario(valor, valor_padrao="Não Identificado", chave='name'):
     Busca o valor de uma chave específica dentro de um dicionário.
     """
     # Acorda o dado internamente
-    obj = converter_para_objeto(valor)
+    obj = _converter_para_objeto(valor)
 
     if isinstance(obj, dict):
         # O método .get() do Python já aceita um valor padrão (fallback) nativamente!
@@ -37,7 +37,7 @@ def extrair_dicionario(valor, valor_padrao="Não Identificado", chave='name'):
 
 
 def extrair_lista_dicts(valor, valor_padrao="Não Identificado", chave='name'):
-    obj = converter_para_objeto(valor)
+    obj = _converter_para_objeto(valor)
 
     if isinstance(obj, list):
         # Lista de dicionários

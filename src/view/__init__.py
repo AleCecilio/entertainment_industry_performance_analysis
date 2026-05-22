@@ -1,9 +1,9 @@
 from .style_config import (
-    CORES, 
-    GRADIENTES, 
-    MAPA_COLUNAS, 
-    ESTILO_CABECALHO, 
-    FORMATADORES
+    _CORES, 
+    _GRADIENTES, 
+    _MAPA_COLUNAS, 
+    _ESTILO_CABECALHO, 
+    _FORMATADORES
 )
 from .tables import (
     estilizar_tabela, 
@@ -17,7 +17,6 @@ from .tables import (
 from .plots import (
     grafico_percentual_missing_data,
     grafico_distribuicao_numerica,
-    grafico_top_categorias,
-    grafico_tamanho_listas,
-    grafico_presenca_chaves_dict
+    grafico_metricas_categorias,
+    grafico_top_categorias
 )

@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 from IPython.display import display, HTML
 from .style_config import (
-    CORES, 
-    GRADIENTES, 
-    MAPA_COLUNAS, 
-    ESTILO_CABECALHO, 
-    FORMATADORES
+    _CORES, 
+    _GRADIENTES, 
+    _MAPA_COLUNAS, 
+    _ESTILO_CABECALHO, 
+    _FORMATADORES
 )
 
 
@@ -15,15 +15,15 @@ from .style_config import (
 #   VARIAVEIS GLOBAIS 
 # =====================================================================
 
-MAX_LINHAS = 100
-MAX_CELULAS = 10_000
+_MAX_LINHAS = 100
+_MAX_CELULAS = 10_000
 
 # =====================================================================
 #   FUNÇÕES DE CONFIGURAÇÃO 
 # =====================================================================
 
 # Controle de largura máxima e truncamento com '...' no CSS global
-def controle_largura_max(df, estilo, quebra_linha=False):
+def _controle_largura_max(df, estilo, quebra_linha=False):
     largura = 2000 // len(df.columns)
     largura = max(largura, 300)
     largura = min(largura, 600)
@@ -61,13 +61,13 @@ def controle_largura_max(df, estilo, quebra_linha=False):
     ], overwrite=False)
 
 # Verificando o tamanho e ajusta o dataframe para exibição
-def ajustar_tamanho_df (df_base, qtd_linhas):
+def _ajustar_tamanho_df (df_base, qtd_linhas):
 
     # Calculo do tamanho do dataframe
     celulas = qtd_linhas * len(df_base.columns)
     
     # Dicisão de visualização
-    if celulas <= MAX_CELULAS and qtd_linhas <= MAX_LINHAS:
+    if celulas <= _MAX_CELULAS and qtd_linhas <= _MAX_LINHAS:
         return  df_base.head(qtd_linhas)
 
     else:
@@ -82,13 +82,13 @@ def ajustar_tamanho_df (df_base, qtd_linhas):
             df_base.tail(5)
         ])
 
-def config_celula_anomala(valor,valores_anomalos):
+def _config_celula_anomala(valor,valores_anomalos):
     # Modo Cirúrgico: Monta a string CSS baseada no dicionário de cores
     css_anomalia = (
         f"background-color: {
-            CORES['anomalia']['background-color']
+            _CORES['anomalia']['background-color']
         }; color: {
-            CORES['anomalia']['color']
+            _CORES['anomalia']['color']
         };"
     )
 
@@ -118,7 +118,7 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
 
     # Definindo quantidade de linhas padrão
     if qtd_linhas is None:
-        qtd_linhas = min(len(df), MAX_LINHAS)
+        qtd_linhas = min(len(df), _MAX_LINHAS)
 
     # Define dataframe base
     if colunas_selecionadas is not None:
@@ -137,9 +137,9 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
     else:
         df_base = df
 
-    df_relatorio = ajustar_tamanho_df(df_base, qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df_base, qtd_linhas)
 
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
 
     if caption:
         estilo = estilo.set_caption(caption)
@@ -150,15 +150,15 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
     })
 
     for coluna in df_relatorio.columns:
-        categoria = MAPA_COLUNAS.get(coluna)
-        if categoria and categoria in CORES:
-            estilo = estilo.set_properties(subset=[coluna], **CORES[categoria])
+        categoria = _MAPA_COLUNAS.get(coluna)
+        if categoria and categoria in _CORES:
+            estilo = estilo.set_properties(subset=[coluna], **_CORES[categoria])
 
-    formatadores_html = {
-        col: fmt for col, fmt in FORMATADORES.items() if col in df_relatorio.columns
+    _formatadores_html = {
+        col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
     }
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -166,7 +166,7 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 
@@ -177,33 +177,33 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
     """
     # Definindo quantidade de linhas padrão
     if qtd_linhas is None:
-        qtd_linhas = min(len(df), MAX_LINHAS)
+        qtd_linhas = min(len(df), _MAX_LINHAS)
 
     if col_quantidade is None:
         candidatas = [c for c in df.columns if c != col_percentual]
         col_quantidade = candidatas[0] if candidatas else None
 
-    df_relatorio = ajustar_tamanho_df(df, qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df, qtd_linhas)
 
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
 
 
     if caption:
         estilo = estilo.set_caption(caption)
 
     if col_percentual in df.columns:
-        estilo = estilo.background_gradient(cmap=GRADIENTES['anomalia'], subset=[col_percentual])
+        estilo = estilo.background_gradient(cmap=_GRADIENTES['anomalia'], subset=[col_percentual])
 
     if col_quantidade and col_quantidade in df.columns:
-        estilo = estilo.background_gradient(cmap=GRADIENTES['volume'], subset=[col_quantidade])
+        estilo = estilo.background_gradient(cmap=_GRADIENTES['volume'], subset=[col_quantidade])
 
-    formatadores_html = {}
+    _formatadores_html = {}
     if col_percentual in df.columns:
-        formatadores_html[col_percentual] = '{:.2f}%'
+        _formatadores_html[col_percentual] = '{:.2f}%'
     if col_quantidade and col_quantidade in df.columns:
-        formatadores_html[col_quantidade] = '{:,.0f}'
+        _formatadores_html[col_quantidade] = '{:,.0f}'
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -211,7 +211,7 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 
@@ -222,11 +222,11 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
     """
     # Definindo quantidade de linhas padrão
     if qtd_linhas is None:
-        qtd_linhas = min(len(df), MAX_LINHAS)
+        qtd_linhas = min(len(df), _MAX_LINHAS)
 
-    df_relatorio = ajustar_tamanho_df(df, qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df, qtd_linhas)
     
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
 
     if caption:
         estilo = estilo.set_caption(caption)
@@ -234,18 +234,18 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
     if colunas_score:
         cols_validas = [c for c in colunas_score if c in df_relatorio.columns]
         if cols_validas:
-            estilo = estilo.background_gradient(cmap=GRADIENTES['metrica'], subset=cols_validas)
+            estilo = estilo.background_gradient(cmap=_GRADIENTES['metrica'], subset=cols_validas)
 
     if colunas_financeiras:
         cols_validas = [c for c in colunas_financeiras if c in df_relatorio.columns]
         if cols_validas:
-            estilo = estilo.background_gradient(cmap=GRADIENTES['financeiro'], subset=cols_validas)
+            estilo = estilo.background_gradient(cmap=_GRADIENTES['financeiro'], subset=cols_validas)
 
-    formatadores_html = {
-        col: fmt for col, fmt in FORMATADORES.items() if col in df_relatorio.columns
+    _formatadores_html = {
+        col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
     }
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -253,7 +253,7 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 
@@ -265,7 +265,7 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
     """
     # Definindo quantidade de linhas padrão
     if qtd_linhas is None:
-        qtd_linhas = min(len(df), MAX_LINHAS)
+        qtd_linhas = min(len(df), _MAX_LINHAS)
 
     colunas_exibir = list(colunas_destaque)
 
@@ -274,9 +274,9 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
 
     df_relatorio = df.loc[mascara, [c for c in colunas_exibir if c in df.columns]]
 
-    df_relatorio = ajustar_tamanho_df(df_relatorio, qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df_relatorio, qtd_linhas)
 
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
 
     if caption:
         estilo = estilo.set_caption(caption)
@@ -285,21 +285,21 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
     if valores_anomalos is None:
         for col in colunas_destaque:
             if col in df_relatorio.columns:
-                estilo = estilo.set_properties(subset=[col], **CORES['anomalia'])
+                estilo = estilo.set_properties(subset=[col], **_CORES['anomalia'])
     else:
         cols_validas = [c for c in colunas_destaque if c in df_relatorio.columns]
         if cols_validas:
             estilo = estilo.map(
-                config_celula_anomala, 
+                _config_celula_anomala, 
                 valores_anomalos=valores_anomalos,
                 subset=cols_validas
             )
 
-    formatadores_html = {
-        col: fmt for col, fmt in FORMATADORES.items() if col in df_relatorio.columns
+    _formatadores_html = {
+        col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
     }
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -307,7 +307,7 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 
@@ -320,27 +320,27 @@ def estilizar_comparativo(df, col_grupo, colunas_metrica, qtd_linhas=None, capti
     """
     # Definindo quantidade de linhas padrão
     if qtd_linhas is None:
-        qtd_linhas = min(len(df), MAX_LINHAS)
+        qtd_linhas = min(len(df), _MAX_LINHAS)
 
-    df_relatorio = ajustar_tamanho_df(df,qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df,qtd_linhas)
 
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
 
     if caption:
         estilo = estilo.set_caption(caption)
 
     if col_grupo in df_relatorio.columns:
-        estilo = estilo.set_properties(subset=[col_grupo], **CORES['booleano'])
+        estilo = estilo.set_properties(subset=[col_grupo], **_CORES['booleano'])
 
     cols_validas = [c for c in colunas_metrica if c in df_relatorio.columns]
     if cols_validas:
-        estilo = estilo.background_gradient(cmap=GRADIENTES['divergente'], subset=cols_validas)
+        estilo = estilo.background_gradient(cmap=_GRADIENTES['divergente'], subset=cols_validas)
 
-    formatadores_html = {
-        col: fmt for col, fmt in FORMATADORES.items() if col in df_relatorio.columns
+    _formatadores_html = {
+        col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
     }
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -348,7 +348,7 @@ def estilizar_comparativo(df, col_grupo, colunas_metrica, qtd_linhas=None, capti
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 
@@ -360,27 +360,27 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
     """
     qtd_linhas = len(df_corr)
 
-    df_relatorio = ajustar_tamanho_df(df_corr, qtd_linhas)
+    df_relatorio = _ajustar_tamanho_df(df_corr, qtd_linhas)
 
     # Aplica o cabeçalho base e bordas da tabela
-    estilo = df_relatorio.style.set_table_styles(ESTILO_CABECALHO)
+    estilo = df_relatorio.style.set_table_styles(_ESTILO_CABECALHO)
     
     if caption:
         estilo = estilo.set_caption(caption)
         
     # Travar vmin=-1 e vmax=1 é a regra de ouro para heatmaps de correlação perfeitos
     estilo = estilo.background_gradient(
-        cmap=GRADIENTES['correlacao'], 
+        cmap=_GRADIENTES['correlacao'], 
         vmin=-1.0, 
         vmax=1.0
     )
     
-    formatadores_html = {
-        col: fmt for col, fmt in FORMATADORES.items() if col in df_relatorio.columns
+    _formatadores_html = {
+        col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
     }
 
 
-    return controle_largura_max(
+    return _controle_largura_max(
         df_relatorio,
         estilo.map(
             lambda v: 'color: #888888;'
@@ -388,7 +388,7 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
             if (not isinstance(v, (list, dict)) 
             and pd.isna(v)) 
             else ''
-        ).format(formatadores_html)
+        ).format(_formatadores_html)
     )
 
 def estilizar_relatorio_categorias(df_relatorio, caption="Relatório de Variáveis Categóricas"):
@@ -402,11 +402,11 @@ def estilizar_relatorio_categorias(df_relatorio, caption="Relatório de Variáve
     colunas_texto = [c for c in ['top_values_count', 'top_values_pct_%'] if c in df_relatorio.columns]
     
     if colunas_texto:
-        formatadores_html = {
+        _formatadores_html = {
             col: lambda x: str(x).replace('\n', '<br>') if pd.notna(x) else x
             for col in colunas_texto
         }
-    estilo = estilo.format(formatadores_html)   
+    estilo = estilo.format(_formatadores_html)   
     estilo = estilo.set_properties(subset=colunas_texto, **{'text-align': 'left'})
         
     return estilo

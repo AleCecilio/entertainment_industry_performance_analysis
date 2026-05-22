@@ -1,16 +1,16 @@
 from pathlib import Path
 import pandas as pd
 
-def acao_pkl(df,caminho_base):
+def _acao_pkl(df,caminho_base):
     # Guarda em Pickle (O seu "Save State" do Python)
     df.to_pickle(caminho_base.with_suffix('.pkl'))
 
-def acao_csv(df,caminho_base, index):
+def _acao_csv(df,caminho_base, index):
     # Guardar em CSV (A sua vitrine para o mundo)
     # Usamos utf-8-sig para garantir que acentos funcionem no Excel
     df.to_csv(caminho_base.with_suffix('.csv'), index=index, encoding='utf-8-sig')
 
-def acao_parquet(df, caminho_base, index):
+def _acao_parquet(df, caminho_base, index):
     df.to_parquet(caminho_base.with_suffix('.parquet'), index=index)
 
 
@@ -34,18 +34,18 @@ def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both
 
     match tipo_arquivo:
         case 'pkl': 
-            acao_pkl(df,caminho_base)
+            _acao_pkl(df,caminho_base)
             print(f"Sucesso! Ficheiro guardado em '{caminho_base}.pkl'")
         case 'csv':
-            acao_csv(df,caminho_base, index)
+            _acao_csv(df,caminho_base, index)
             print(f"Sucesso! Ficheiro guardado em '{caminho_base}.csv'")
         case 'parquet':
-            acao_parquet(df,caminho_base,index)
+            _acao_parquet(df,caminho_base,index)
             print(f"Sucesso! Ficheiro guardado em '{caminho_base}.parquet'")
         case 'all':
-            acao_pkl(df,caminho_base)
-            acao_csv(df,caminho_base, index)
-            acao_parquet(df,caminho_base,index)
+            _acao_pkl(df,caminho_base)
+            _acao_csv(df,caminho_base, index)
+            _acao_parquet(df,caminho_base,index)
             print("Sucesso! Ficheiro guardado em")
             print(f"\n{caminho_base}.pkl")
             print(f"\n{caminho_base}.csv") 

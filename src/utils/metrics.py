@@ -2,6 +2,42 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+# =========================================================================
+# HELPERS INTERNOS — DETECÇÃO AUTOMÁTICA DE TIPOS E CALCULO DE FREQUÊNCIA
+# =========================================================================
+
+def _calc_categorical_freq(df, col, top_n=10):
+ 
+    s = df[col].dropna()
+    if s.empty:
+        return None, None, 0, False
+
+    total_valid_rows = len(s)
+    primeiro_valor = s.iloc[0]
+    is_complex = False
+
+    # Verificação de tipo
+    try:
+        hash(primeiro_valor)
+        s_analise = s
+    except TypeError:
+        is_complex = True
+        s_analise = s.explode().dropna()
+
+    # Ignora JSONs sujos disfarçados de string
+    if not is_complex and isinstance(primeiro_valor, str) and primeiro_valor.lstrip().startswith(("[", "{")):
+        return None, None, 0, False
+
+    # O Cálculo Puro
+    freq = s_analise.value_counts()
+    if freq.empty:
+        return None, None, 0, False
+        
+    freq_top = freq.iloc[:top_n]
+    pct_top = (freq_top / total_valid_rows * 100).round(1)
+
+    return freq, freq_top, pct_top, total_valid_rows
+
 # =====================================================================
 # ANÁLISE UNIVARIADA — COLUNAS NUMÉRICAS
 # =====================================================================
@@ -79,40 +115,19 @@ def categorical_summary(df, cols = None, top_n = 10):
         if col not in df.columns:
             continue
 
-        s = df[col].dropna()
-        if s.empty:
+        resultados = _calc_categorical_freq(df, col, top_n)
+        
+       
+        if resultados[0] is None:
             continue
+            
+        freq, top_freq, top_pct, total_valid_rows = resultados
 
-        # --- Triagem: detecta se a coluna guarda estruturas unhashable ---
-        primeiro_valor = s.iloc[0]
-        try:
-            hash(primeiro_valor)
-            is_complex = False
-        except TypeError:
-            is_complex = True
-
-        # --- Ignora strings sujas de JSON ---
-        if not is_complex and isinstance(primeiro_valor, str) and primeiro_valor.lstrip().startswith(("[", "{")):
-            continue
-
-        # --- Frequência ---
-        if is_complex:
-            freq = s.explode().dropna().value_counts()
-        else:
-            freq = s.value_counts()
-
-        if freq.empty:
-            continue
-
-        # --- Entropia de Shannon normalizada ---
+        # Entropia de Shannon normalizada 
         probs = freq / freq.sum()
         entropy_val = stats.entropy(probs, base=2)
         max_entropy = np.log2(len(freq)) if len(freq) > 1 else 1.0
         entropy_norm = round(entropy_val / max_entropy, 4) if max_entropy > 0 else 0.0
-
-        # --- Top N formatado com bullet points verticais ---
-        top_freq = freq.iloc[:top_n]
-        top_pct = (top_freq / len(s) * 100).round(1)
 
         top_values_count = "\n".join(
             f"• {idx} ({count})"
@@ -125,7 +140,7 @@ def categorical_summary(df, cols = None, top_n = 10):
 
         relatorio.append({
             "column":           col,
-            "total_valid_rows": len(s),
+            "total_valid_rows": total_valid_rows,
             "unique_categories": len(freq),
             "entropy_norm":     entropy_norm,
             "top_values_count": top_values_count,
@@ -137,7 +152,7 @@ def categorical_summary(df, cols = None, top_n = 10):
 
     return (
         pd.DataFrame(relatorio)
-        .set_index("column")
+        .set_index('column')
         .sort_values("entropy_norm", ascending=False)
     )
 
@@ -166,102 +181,4 @@ def exploded_files_summary(dataframes_dict, top_n=10):
     return relatorio_geral
 
 
-# =====================================================================
-# ANÁLISE UNIVARIADA — COLUNAS DE DICIONÁRIOS (CAMADA INTERIM)
-# =====================================================================
 
-def dict_column_summary(df, cols=None, extract_key=None, top_n=10):
-    """
-    Resumo univariado para colunas cujos valores são dicionários Python nativos.
-    Se 'cols' não for passado, detecta automaticamente os dicionários.
-    """
-    if cols is None:
-        cols = _detect_dict_cols(df)
-        
-    if isinstance(cols, str):
-        cols = [cols]
-
-    if not cols:
-        return {"erro": "Nenhuma coluna de dicionário encontrada."}
-
-    result = {}
-    for col in cols:
-        if col not in df.columns:
-            continue
-            
-        s        = df[col]
-        null_pct = round(s.isna().mean() * 100)
-        s_valid  = s.dropna()
-        if s_valid.empty:
-            continue
-
-        if extract_key is not None:
-            values = s_valid.apply(
-                lambda d: d.get(extract_key) if isinstance(d, dict) else None
-            ).dropna()
-
-            freq    = values.value_counts()
-            top_freq = freq.iloc[:top_n]
-            top_pct  = (top_freq / len(df) * 100).round(2)
-
-            result[col] = {
-                'null_%':        null_pct,
-                'unique_values': freq.nunique(),
-                'top_values':    pd.DataFrame({
-                    'count': top_freq.values,
-                    'pct_%': top_pct.values,
-                }, index=top_freq.index),
-            }
-
-        else:
-            all_keys = set()
-            for d in s_valid:
-                if isinstance(d, dict):
-                    all_keys.update(d.keys())
-
-            key_records = []
-            for key in sorted(all_keys):
-                values   = s_valid.apply(lambda d: d.get(key) if isinstance(d, dict) else None)
-                present  = values.notna()
-                freq     = values[present].value_counts()
-                top_vals = dict(zip(
-                    freq.index[:top_n],
-                    (freq.iloc[:top_n] / len(df) * 100).round(2)
-                ))
-                key_records.append({
-                    'key':         key,
-                    'presence_%':  round(present.mean() * 100),
-                    'unique':      freq.nunique(),
-                    'top_values':  top_vals,
-                })
-
-            result[col] = {
-                'null_%':      null_pct,
-                'keys_found':  sorted(all_keys),
-                'key_summary': pd.DataFrame(key_records).set_index('key'),
-            }
-
-    return result
-
-
-# =====================================================================
-# HELPERS INTERNOS — DETECÇÃO AUTOMÁTICA DE TIPOS
-# =====================================================================
-
-def _detect_list_cols(df):
-    """Detecta colunas cujo primeiro valor não-nulo é uma lista."""
-    detected = []
-    for col in df.columns:
-        first_valid = df[col].dropna().iloc[0] if df[col].notna().any() else None
-        if isinstance(first_valid, list):
-            detected.append(col)
-    return detected
-
-def _detect_dict_cols(df):
-    """Detecta colunas cujo primeiro valor não-nulo é um dicionário."""
-    detected = []
-    for col in df.columns:
-        first_valid = df[col].dropna().iloc[0] if df[col].notna().any() else None
-        if isinstance(first_valid, dict):
-            detected.append(col)
-    return detected

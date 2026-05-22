@@ -4,7 +4,7 @@ import pandas as pd
 # =====================================================================
 #   PALETA DE CORES SEMÂNTICAS (Por Categoria)
 # =====================================================================
-CORES = {
+_CORES = {
     'identificador': {'background-color': '#2B2D42', 'color': 'white'},  # Ardósia — títulos, IDs
     'criativo':      {'background-color': '#6D597A', 'color': 'white'},  # Roxo Muted — gêneros, coleções
     'entidade':      {'background-color': '#4A4E69', 'color': 'white'},  # Cinza Azulado — estúdios, autores
@@ -22,7 +22,7 @@ CORES = {
 }
 
 # Gradientes semânticos para .background_gradient()
-GRADIENTES = {
+_GRADIENTES = {
     'metrica':    'viridis',
     'financeiro': 'Greens',
     'anomalia':   'Reds',
@@ -38,7 +38,7 @@ GRADIENTES = {
 #    MAPEAMENTO DE COLUNAS → CATEGORIA SEMÂNTICA
 #    Cobre nomes crus e limpos dos três datasets do projeto.
 # =====================================================================
-MAPA_COLUNAS = {
+_MAPA_COLUNAS = {
     # — Identificadores e Títulos —
     'index': 'identificador', 'level_0': 'identificador',
     'id': 'identificador', 'Book Id': 'identificador', 'book_id': 'identificador',
@@ -106,7 +106,7 @@ MAPA_COLUNAS = {
 # =====================================================================
 #   ESTILO BASE DE TABELA (cabeçalho + alinhamento)
 # =====================================================================
-ESTILO_CABECALHO = [
+_ESTILO_CABECALHO = [
     {'selector': 'th', 'props': [
         ('background-color', '#2B2D42'),
         ('color', 'white'),
@@ -129,7 +129,7 @@ ESTILO_CABECALHO = [
 # =====================================================================
 # FÁBRICA DE FORMATADORES DEFENSIVOS
 # =====================================================================
-def criar_formatador(padrao_string):
+def _criar_formatador(padrao_string):
     """
     Recebe uma string de formatação (ex: 'US$ {:,.0f}') e retorna uma função
     segura que converte o valor para float antes de formatar. 
@@ -150,39 +150,39 @@ def criar_formatador(padrao_string):
 # =====================================================================
 # DICIONÁRIO DE FORMATADORES APLICANDO A BLINDAGEM
 # =====================================================================
-FORMATADORES = {
+_FORMATADORES = {
     # --- Financeiro ---
-    'budget':     criar_formatador('US$ {:,.0f}'),
-    'revenue':    criar_formatador('US$ {:,.0f}'),
-    'profit':     criar_formatador('US$ {:,.0f}'),
-    'box_office': criar_formatador('US$ {:,.0f}'),
+    'budget':     _criar_formatador('US$ {:,.0f}'),
+    'revenue':    _criar_formatador('US$ {:,.0f}'),
+    'profit':     _criar_formatador('US$ {:,.0f}'),
+    'box_office': _criar_formatador('US$ {:,.0f}'),
     
     # --- Proporções e Porcentagens ---
-    'roi':                criar_formatador('{:.1f}%'),
-    'Perda de Dados (%)': criar_formatador('{:.2f}%'),
-    'porcentagem':        criar_formatador('{:.2f}%'),
-    'Porcentagem':        criar_formatador('{:.2f}%'),
+    'roi':                _criar_formatador('{:.1f}%'),
+    'Perda de Dados (%)': _criar_formatador('{:.2f}%'),
+    'porcentagem':        _criar_formatador('{:.2f}%'),
+    'Porcentagem':        _criar_formatador('{:.2f}%'),
     
     # --- Volumes (Contagens inteiras com separador de milhares) ---
-    'Contagem':      criar_formatador('{:,.0f}'),
-    'contagem':      criar_formatador('{:,.0f}'),
-    'count':         criar_formatador('{:,.0f}'),
-    'vote_count':    criar_formatador('{:,.0f}'),
-    'ratings_count': criar_formatador('{:,.0f}'),
+    'Contagem':      _criar_formatador('{:,.0f}'),
+    'contagem':      _criar_formatador('{:,.0f}'),
+    'count':         _criar_formatador('{:,.0f}'),
+    'vote_count':    _criar_formatador('{:,.0f}'),
+    'ratings_count': _criar_formatador('{:,.0f}'),
     
     # --- Notas e Popularidade ---
-    'vote_average':   criar_formatador('{:.1f}'),
-    'average_rating': criar_formatador('{:.2f}'),
-    'score':          criar_formatador('{:.2f}'),
-    'popularity':     criar_formatador('{:.2f}'),
+    'vote_average':   _criar_formatador('{:.1f}'),
+    'average_rating': _criar_formatador('{:.2f}'),
+    'score':          _criar_formatador('{:.2f}'),
+    'popularity':     _criar_formatador('{:.2f}'),
     
     # --- Grandezas Físicas ---
-    'runtime':   criar_formatador('{:.0f} min'),
-    'num_pages': criar_formatador('{:,.0f} págs'),
+    'runtime':   _criar_formatador('{:.0f} min'),
+    'num_pages': _criar_formatador('{:,.0f} págs'),
 
     # --- Correlação (Coeficiente puro, SEM porcentagem) ---
-    'correlacao': criar_formatador('{:.2f}'),
-    'Correlacao': criar_formatador('{:.2f}'),
+    'correlacao': _criar_formatador('{:.2f}'),
+    'Correlacao': _criar_formatador('{:.2f}'),
 }
 
 

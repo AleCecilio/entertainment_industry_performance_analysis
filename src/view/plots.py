@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 
+
 # =====================================================================
 #   Variaveis Globais
 # =====================================================================
@@ -31,9 +32,18 @@ def _set_config_graf(tamanho_figura=None, polegadas=None, width=None):
     
     return tamanho_figura, polegadas, width
 
+def _formatar_numero(x, pos=None):
+    """Formata números grandes de forma limpa (1K, 1M, 1B) sem cifrão."""
+    if x >= 1e9:
+        return f'{x*1e-9:.1f}B'
+    elif x >= 1e6:
+        return f'{x*1e-6:.0f}M'
+    elif x >= 1e3:
+        return f'{x*1e-3:.0f}K'
+    return f'{x:.0f}'
 
 # Transforma 1.000.000 em "1M" e 1.000.000.000 em "1B"
-def _formatar_dinheiro(x, pos):
+def _formatar_dinheiro(x, pos=None):
     if x >= 1e9:
         return f'${x*1e-9:.1f}B'
     elif x >= 1e6:
@@ -41,6 +51,43 @@ def _formatar_dinheiro(x, pos):
     elif x >= 1e3:
         return f'${x*1e-3:.0f}K'
     return f'${x:.0f}'
+
+def _get_vote_count_ticks():
+    """
+    Marcadores logarítmicos para o engajamento do público (quantidade de votos).
+    Ideal para ver a diferença entre filmes amadores e blockbusters históricos.
+    """
+    return [
+        1,          # O filme que só o diretor avaliou
+        10,         # Filmes indie locais / curtas de faculdade
+        100,        # Filme cult ou antigo com público nichado
+        1_000,      # Lançamento comercial padrão / Sucesso moderado
+        10_000,     # Hit mundial do ano
+        50_000,     # Mega Blockbuster histórico (Top 100 do TMDB)
+        100_000     # Teto de segurança para visualização
+    ]
+
+def _get_nota_ticks_and_labels(escala=10):
+    """
+    Gera marcadores dinâmicos para notas. 
+    Se escala=5 (Livros/Goodreads). Se escala=10 (Filmes/Animes).
+    """
+    if escala == 5:
+        dicionario_notas = {
+            0.0: "0 (S/ Nota)", 1.0: "1 (Péssimo)", 2.0: "2 (Ruim)",
+            3.0: "3 (Regular)", 4.0: "4 (Muito Bom)", 5.0: "5 (Obra-Prima)"
+        }
+    else:
+        dicionario_notas = {
+            0.0: "0 (S/ Nota)", 1.0: "1 (Desastre)", 2.0: "2 (Péssimo)",
+            3.0: "3 (Ruim)", 4.0: "4 (Fraco)", 5.0: "5 (Regular)",
+            6.0: "6 (Ok)", 7.0: "7 (Bom)", 8.0: "8 (Ótimo)",
+            9.0: "9 (Excelente)", 10.0: "10 (Obra-Prima)"
+        }
+        
+    posicoes = list(dicionario_notas.keys())
+    rotulos = list(dicionario_notas.values())
+    return posicoes, rotulos
 
 def _get_entertainment_ticks():
     """
@@ -127,7 +174,7 @@ def grafico_distribuicao_numerica(
         polegadas=None,
         width=None,
         usar_log=False,
-        formato_moeda=False,
+        tipo_dado=None,
         valores_eixo_x=None
     ):
     """
@@ -153,27 +200,71 @@ def grafico_distribuicao_numerica(
     # Gráfico 2: Histograma + KDE
     sns.histplot(x=s_plot, ax=ax_hist, color='#1E2780', kde=True, bins=30, log_scale=usar_log)
 
+    if usar_log:
+        ax_hist.xaxis.set_minor_locator(ticker.NullLocator())
+        ax_box.xaxis.set_minor_locator(ticker.NullLocator())
+
+    # Configuração do eixo X 
     if valores_eixo_x is not None:
-        ax_hist.set_xticks(valores_eixo_x)
-    elif usar_log and formato_moeda:
-        ax_hist.set_xticks(_get_entertainment_ticks())
+
+        ax_hist.xaxis.set_major_locator(ticker.FixedLocator(valores_eixo_x))
+        labels = [
+            _formatar_dinheiro(x) for x in valores_eixo_x
+        ] if tipo_dado == 'moeda' else [
+            str(x) for x in valores_eixo_x
+        ]
+
+        ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
+        ax_hist.tick_params(axis='x', rotation=45)        
+    else:
+        match tipo_dado:
+            case 'nota_10':
+                posicoes, rotulos = _get_nota_ticks_and_labels(escala=10)
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
+                ax_hist.tick_params(axis='x', rotation=45)                 
+            case 'nota_5':
+                posicoes, rotulos = _get_nota_ticks_and_labels(escala=5)
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
+                ax_hist.tick_params(axis='x', rotation=45)              
+            case 'contagem' if usar_log:
+                # Contagem Exponencial (Log): Marcadores fixos nas potências de 10
+                ticks = _get_vote_count_ticks()
+                labels = [f"{t//1000}K" if t >= 1000 else str(t) for t in ticks]
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
+                ax_hist.tick_params(axis='x', rotation=45)
+            case 'contagem':
+                # Contagem Convencional (Linear): O Matplotlib acha a posição, nós botamos a "roupa" limpa.
+                formatter = ticker.FuncFormatter(_formatar_numero)
+                ax_hist.xaxis.set_major_formatter(formatter)
+                ax_hist.tick_params(axis='x', rotation=45)       
+            case 'moeda' if usar_log:
+                ticks = _get_entertainment_ticks()
+                labels = [_formatar_dinheiro(x) for x in ticks]
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
+                ax_hist.tick_params(axis='x', rotation=45) 
+            case 'moeda':
+                # Moeda Convencional (Linear)
+                formatter = ticker.FuncFormatter(_formatar_dinheiro)
+                ax_hist.xaxis.set_major_formatter(formatter)
+                ax_hist.tick_params(axis='x', rotation=45)      
+            case _:
+                pass
     
-    if formato_moeda:
-        formatter = ticker.FuncFormatter(_formatar_dinheiro)
-        ax_hist.xaxis.set_major_formatter(formatter)
-    
-    if formato_moeda:
-        formatter = ticker.FuncFormatter(_formatar_dinheiro)
-        ax_hist.xaxis.set_major_formatter(formatter)
-    
-    ax_hist.tick_params(axis='x', rotation=45)
     
     # Estilização
     titulo_real = titulo if titulo else f"Distribuição: {coluna.capitalize()}"
-    ax_box.set_title(titulo_real, fontsize=14, fontweight='bold', pad=15)
-    ax_hist.set_xlabel(coluna.capitalize(), fontsize=12)
-    ax_hist.set_ylabel("Quantidade de Filmes", fontsize=12)
+    ax_box.set_title(titulo_real, fontsize=14, pad=15)
+    ax_hist.set_ylabel("Quantidade de Registros", fontsize=12)
     
+    
+    if usar_log:
+        ax_hist.set_xlabel(f"{coluna.capitalize()} (Escala Logarítmica)", fontsize=12)
+    else:
+        ax_hist.set_xlabel(coluna.capitalize(), fontsize=12)
 
     if relatorio_df is not None and coluna in relatorio_df.index:
         skew = round(relatorio_df.loc[coluna, 'skew'], 2)
@@ -189,7 +280,11 @@ def grafico_distribuicao_numerica(
                      ha='right', va='top', 
                      fontsize=10, color='#333333',
                      bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
-    
+        
+    sns.despine(left=True, bottom=False)
+    ax_box.spines['bottom'].set_visible(False)
+    ax_box.tick_params(bottom=False)
+
     plt.tight_layout()
     plt.show()
 
@@ -212,7 +307,6 @@ def grafico_metricas_categorias(
     Consome DIRETAMENTE o dicionário gerado pelo seu arquivo metrics.py
     e plota as categorias em um gráfico de barras horizontais super legível.
     """
-
     tamanho_figura, polegadas, width = _set_config_graf(tamanho_figura, polegadas, width)
 
     # Extrai o DataFrame de top_values que o metrics.py gerou

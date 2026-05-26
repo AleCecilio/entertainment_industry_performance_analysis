@@ -5,5 +5,6 @@ from .metrics import (
     _calc_categorical_freq,
     numeric_summary, 
     categorical_summary, 
-    exploded_files_summary
+    exploded_files_summary,
+    testar_dependencia_categorica
 )

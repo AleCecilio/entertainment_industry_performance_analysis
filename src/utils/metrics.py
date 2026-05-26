@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
+from scipy.stats import chi2_contingency
 
 # =========================================================================
 # HELPERS INTERNOS — DETECÇÃO AUTOMÁTICA DE TIPOS E CALCULO DE FREQUÊNCIA
@@ -182,3 +183,30 @@ def exploded_files_summary(dataframes_dict, top_n=10):
 
 
 
+def testar_dependencia_categorica(tabela_contingencia, alpha=0.05):
+    """
+    Executa o teste do Qui-Quadrado de Independência
+    para duas colunas categóricas de qualquer dataset, exibindo o relatório final.
+    """
+    
+    # Executar o Teste do Qui-Quadrado
+    chi2, p, dof, expected = chi2_contingency(tabela_contingencia)
+
+    # Formata o p-valor para notação científica se for muito pequeno
+    p_formatado = f"{p:.4e}" if p < 0.001 else f"{p:.4f}"
+
+    print("\nResultados do Teste Estatístico")
+    print(f"Estatística Qui-Quadrado: {chi2:.4f}")
+    print(f"Graus de Liberdade: {dof}")
+    print(f"p-valor: {p_formatado}")
+
+    print("\nConclusão do Teste")
+    match p:
+        case p if p < alpha:
+            print(f"Como o p-valor ({p_formatado}) < {alpha}, REJEITAMOS a hipótese nula ($H_0$).")
+            print("Conclusão: Existe uma associação estatisticamente significativa entre as duas variáveis!")
+        case _:
+            print(f"Como o p-valor ({p_formatado}) >= {alpha}, FALHAMOS em rejeitar a hipótese nula ($H_0$).")
+            print("Conclusão: As variáveis são independentes (a relação observada é mero acaso).")
+            
+    return chi2, p, dof, expected

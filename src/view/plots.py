@@ -385,11 +385,15 @@ def grafico_top_categorias(
     )
 
     # Adiciona os números em cima de cada barra
-    for p in ax.patches:
-        width_bar = p.get_width()
-        ax.annotate(f'{width_bar}%', 
-                    (width_bar + 0.5, p.get_y() + p.get_height() / 2.), 
-                    ha='left', va='center', fontsize=10, fontweight='bold', color='#333333')
+    for container in ax.containers:
+        ax.bar_label(
+            container, 
+            fmt='%.2f%%',      
+            padding=5,          
+            fontsize=10, 
+            fontweight='bold', 
+            color='#333333'
+        )
 
     # Estilização
     titulo_real = titulo if titulo else f"Top Categorias: {nome_coluna.capitalize()}"
@@ -397,7 +401,9 @@ def grafico_top_categorias(
     ax.set_xlabel("Participação no Dataset (%)", fontsize=12)
     ax.set_ylabel("") 
     
-    sns.despine(left=True, bottom=True) # Deixa mais minimalista
+    plt.xlim(0, df_plot['Porcentagem'].max() * 1.15)
+
+    sns.despine(left=True, bottom=True) 
     
     # Busca a Entropia no relatório
     if relatorio_df is not None and nome_coluna in relatorio_df.index:
@@ -406,4 +412,136 @@ def grafico_top_categorias(
                 transform=ax.transAxes, ha='right', fontsize=10, color='gray')
     
     plt.tight_layout()
+    plt.show()
+
+def grafico_corr_scatter():
+    pass
+
+def grafico_dependencia_categorica_top_10(
+    tabela_absoluta, 
+    chi2, 
+    p_valor, 
+    titulo=None, 
+    palette='YlGnBu', 
+    polegadas=None,
+):
+    """
+    Plota um Heatmap bivariado para avaliar a dependência entre duas variáveis categóricas.
+    Calcula automaticamente o tamanho ideal do canvas com base no volume de dados.
+    """
+
+    if polegadas is None:
+        polegadas = _DPI_DEFALT
+
+    top_genres = (
+    tabela_absoluta.sum(axis=0)
+    .sort_values(ascending=False)
+    .head(15)
+    .index
+    )
+
+    top_languages = (
+        tabela_absoluta.sum(axis=1)
+        .sort_values(ascending=False)
+        .head(10)
+        .index
+    )
+
+    tabela_filtrada = tabela_absoluta.loc[
+        top_languages,
+        top_genres
+    ]
+
+    # Criação da Tabela Percentual (apenas dados filtrados)
+    tabela_percentual = (
+        tabela_filtrada.div(tabela_filtrada.sum(axis=1), axis=0)
+    ) * 100
+
+    # Motor de Dimensionamento Automático (Dynamic Layout)
+    num_linhas = len(tabela_percentual.index)
+    num_colunas = len(tabela_percentual.columns)
+    
+    largura_calculada = max(12, num_colunas * 1.1)
+    altura_calculada = max(6, num_linhas * 0.75)
+    
+    fig, ax = plt.subplots(figsize=(largura_calculada, altura_calculada), dpi=polegadas)
+
+    #  Renderização do Heatmap
+    ax = sns.heatmap(
+        tabela_percentual, 
+        annot=False,          
+        fmt=".1f",           
+        cmap=palette,       
+        linewidths=0,      
+        cbar_kws={
+            'label': 'Proporção dentro do grupo (%)',
+            'shrink': 0.9
+        },
+        annot_kws={
+            'size': 9
+        },
+        ax=ax
+    )
+
+    # 5Estilização de Títulos e Eixos (Sem negrito no título do eixo X)
+    coluna_y = tabela_percentual.columns.name or "Categoria"
+    coluna_x = tabela_percentual.index.name or "Grupo"
+
+    titulo_real = (
+        titulo
+        if titulo
+        else f"Análise Bivariada: {coluna_y.capitalize()} por {coluna_x.capitalize()}"
+    )
+
+    plt.title(titulo_real, fontsize=14, fontweight='bold', pad=20)
+    plt.ylabel(coluna_x.capitalize(), fontsize=11)
+    plt.xlabel(coluna_y.capitalize(), fontsize=11, labelpad=10)
+
+    # Rotação inteligente para evitar que os textos longos se atropelem no eixo X
+    if num_colunas > 3:
+        plt.xticks(rotation=45, ha='right', rotation_mode='anchor')
+
+    # Avaliação Estatística Inteligente no Rodapé (Match Case)
+    p_texto = f"{p_valor:.4e}" if p_valor < 0.001 else f"{p_valor:.4f}"
+    
+    match p_valor:
+        case p if p < 0.05:
+            conclusao = "Existe associação estatística real (Variáveis Dependentes)"
+        case _:
+            conclusao = "As variáveis são independentes (Relação por acaso)"
+    
+    # Anotação ancorada ao eixo para não ser cortada ou colada nos rótulos
+    p_texto = (
+        f"{p_valor:.4e}"
+        if p_valor < 0.001
+        else f"{p_valor:.4f}"
+    )
+
+    match p_valor:
+        case p if p < 0.05:
+            conclusao = "Existe associação estatística real"
+        case _:
+            conclusao = "As variáveis aparentam independência"
+
+    texto_rodape = (
+        f"Qui-Quadrado = {chi2:.2f}  |  "
+        f"p-valor = {p_texto}  |  "
+        f"{conclusao} (α = 5%)"
+    )
+
+    fig.text(
+        0.02,
+        -0.06,
+        texto_rodape,
+        fontsize=10,
+        style='italic',
+        color='#4A4E69'
+    )
+
+    plt.tight_layout(rect=[0, 0.05, 1, 1])    
+
+    # Abre o respiro inferior se as labels do eixo X estiverem rotacionadas em 45°
+    if num_colunas > 3:
+        plt.subplots_adjust(bottom=0.22)
+        
     plt.show()

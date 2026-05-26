@@ -18,5 +18,6 @@ from .plots import (
     grafico_percentual_missing_data,
     grafico_distribuicao_numerica,
     grafico_metricas_categorias,
-    grafico_top_categorias
+    grafico_top_categorias,
+    grafico_dependencia_categorica_top_10
 )

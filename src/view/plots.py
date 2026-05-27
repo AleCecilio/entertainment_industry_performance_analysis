@@ -23,14 +23,16 @@ _WIDTH_DEFALT = 0.8
 def _set_config_graf(tamanho_figura=None, polegadas=None, width=None):
     if tamanho_figura is None:
         tamanho_figura = _FIGSIZE_DEFALT
-    
+        
     if polegadas is None:
         polegadas = _DPI_DEFALT
-
+        
     if width is None:
         width = _WIDTH_DEFALT
-    
+        
     return tamanho_figura, polegadas, width
+    
+   
 
 def _formatar_numero(x, pos=None):
     """Formata números grandes de forma limpa (1K, 1M, 1B) sem cifrão."""
@@ -276,10 +278,16 @@ def grafico_distribuicao_numerica(
         
         # Coloca uma caixinha de texto no canto superior direito do Histograma
         ax_hist.text(0.95, 0.85, texto_stats, 
-                     transform=ax_hist.transAxes, 
-                     ha='right', va='top', 
-                     fontsize=10, color='#333333',
-                     bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
+        transform=ax_hist.transAxes, 
+        ha='right', va='top', 
+        fontsize=10, color='#333333',
+        bbox=dict(
+            boxstyle='round,pad=0.5', 
+            facecolor='white', 
+            alpha=0.8, 
+            edgecolor='gray'
+        )
+    )
         
     sns.despine(left=True, bottom=False)
     ax_box.spines['bottom'].set_visible(False)
@@ -414,8 +422,153 @@ def grafico_top_categorias(
     plt.tight_layout()
     plt.show()
 
-def grafico_corr_scatter():
-    pass
+def graficos_top_release(
+        df, 
+        coluna_data, 
+        top_n=10, 
+        titulo=None, 
+        palette='viridis', 
+        tamanho_figura=None, 
+        polegadas=None, 
+        width=None,
+        data='year'
+    ):
+    """
+    Plota os anos de lançamento mais frequentes em um gráfico de barras horizontais.
+    Extrai o ano da coluna de data e calcula a frequência para os top_n anos.
+    """
+    tamanho_figura, polegadas, width = _set_config_graf(tamanho_figura, polegadas, width)
+
+    match data:
+        case'year':
+            df['ano_lancamento'] = pd.to_datetime(df[coluna_data], errors='coerce').dt.year
+            anos = pd.to_datetime(df[coluna_data], errors='coerce').dt.year
+            anos = anos.dropna()
+
+            top_release = (
+                anos.value_counts()
+                .head(top_n)
+                .reset_index()
+            )
+            top_release.columns = ['Ano', 'Contagem']
+            top_release['Ano'] = top_release['Ano'].astype(int).astype(str)
+        case 'month':
+            df['mes_lancamento'] = pd.to_datetime(df[coluna_data], errors='coerce').dt.month
+            meses = pd.to_datetime(df[coluna_data], errors='coerce').dt.month
+            meses = meses.dropna()
+
+            top_release = (
+                meses.value_counts()  
+                .head(top_n)
+                .reset_index()
+            )
+
+            top_release.columns = ['Mês', 'Contagem']
+            top_release['Mês'] = top_release['Mês'].astype(int).astype(str)
+        case _:
+            print(f"Erro: O parâmetro 'data' deve ser 'year' ou 'month'. Valor fornecido: '{data}'")
+            return
+
+    fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
+
+    sns.barplot(
+        x='Contagem',
+        y='Ano' if data == 'year' else 'Mês',
+        data=top_release,
+        palette=palette,
+        hue='Ano' if data == 'year' else 'Mês',
+        width=width,
+        ax=ax
+    )
+
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            fmt='%d',
+            padding=8,
+            fontsize=10,
+            fontweight='bold',
+            color='#333333'
+        )
+
+    titulo_real = titulo if titulo else f"Top {top_n} {
+        'Anos' if data == 'year' else 'Meses' 
+    } de Lançamento"
+
+    ax.set_title(
+        titulo_real,
+        fontsize=16,
+        fontweight='bold',
+        color='#2B2D42',
+        loc='left',
+        pad=20
+    )
+
+    ax.set_xlabel("Quantidade de Registros", fontsize=12)
+    ax.set_ylabel("")
+
+    ax.grid(axis='x', alpha=0.2)
+
+    ax.set_xlim(0, top_release['Contagem'].max() * 1.15)
+
+    sns.despine()
+
+    plt.tight_layout()
+    plt.show()
+
+
+def grafico_corr_scatter(
+        df_plot, 
+        coluna_x, 
+        coluna_y, 
+        titulo=None, 
+        tamanho_figura=None, 
+        polegadas=None,
+        limitar_eixos=True
+):
+    tamanho_figura, polegadas, _ = _set_config_graf(tamanho_figura, polegadas)
+
+    fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
+
+    ax =  sns.scatterplot(
+        data=df_plot,
+        x=coluna_x,
+        y=coluna_y,
+        alpha=0.5,
+        color='#2A6FDB',
+        edgecolor='white',
+        linewidth=0.3
+    )
+
+    titulo = titulo if titulo else f"Relação entre {coluna_x} e {coluna_y}"
+    ax.set_title(titulo, fontsize=14, fontweight='bold')
+    ax.set_xlabel(coluna_x, fontsize=12)
+    ax.set_ylabel(coluna_y, fontsize=12)
+
+    if limitar_eixos:
+        ax.set_xlim(0, df_plot[coluna_x].quantile(0.99))
+        ax.set_ylim(0, df_plot[coluna_y].quantile(0.99))
+
+        texto_rodape = (
+            "Obsevação: Os Eixos estão limitados ao percentil 99 para evitar distorção por outliers extremos."
+        )
+
+        fig.text(
+            0.02,
+            -0.06,
+            texto_rodape,
+            fontsize=10,
+            style='italic',
+            color='#4A4E69'
+        )
+    else:
+        ax.set_xlim(0, df_plot[coluna_x].max() * 1.1)
+        ax.set_ylim(0, df_plot[coluna_y].max() * 1.1)
+
+    fig.subplots_adjust(bottom=0.18)
+    plt.tight_layout() 
+
+    plt.show()
 
 def grafico_dependencia_categorica_top_10(
     tabela_absoluta, 
@@ -430,8 +583,7 @@ def grafico_dependencia_categorica_top_10(
     Calcula automaticamente o tamanho ideal do canvas com base no volume de dados.
     """
 
-    if polegadas is None:
-        polegadas = _DPI_DEFALT
+    _, polegadas, _ = _set_config_graf(polegadas)
 
     top_genres = (
     tabela_absoluta.sum(axis=0)
@@ -538,7 +690,8 @@ def grafico_dependencia_categorica_top_10(
         color='#4A4E69'
     )
 
-    plt.tight_layout(rect=[0, 0.05, 1, 1])    
+    fig.subplots_adjust(bottom=0.18)
+    plt.tight_layout()    
 
     # Abre o respiro inferior se as labels do eixo X estiverem rotacionadas em 45°
     if num_colunas > 3:

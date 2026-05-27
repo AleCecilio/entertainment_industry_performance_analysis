@@ -19,5 +19,7 @@ from .plots import (
     grafico_distribuicao_numerica,
     grafico_metricas_categorias,
     grafico_top_categorias,
+    graficos_top_release,
+    grafico_corr_scatter,
     grafico_dependencia_categorica_top_10
 )

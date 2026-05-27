@@ -157,6 +157,59 @@ def categorical_summary(df, cols = None, top_n = 10):
         .sort_values("entropy_norm", ascending=False)
     )
 
+
+def datetime_summary(df, cols=None):
+    """
+    Resumo univariado para colunas de data/hora.
+    Se 'cols' não for passado, detecta automaticamente todas as colunas datetime.
+    """
+    if cols is None:
+        cols = df.select_dtypes(include='datetime').columns.tolist()
+        
+    if isinstance(cols, str):
+        cols = [cols]
+
+    if not cols:
+        return pd.DataFrame()
+
+    relatorio = []
+    for col in cols:
+        if col not in df.columns:
+            continue
+
+        s = df[col].dropna()
+        if s.empty:
+            continue
+        # 1. Captura as datas completas dos extremos (sem a parte da hora)
+        data_min = s.min().strftime('%Y-%m-%d')
+        data_max = s.max().strftime('%Y-%m-%d')
+
+        # 2. Calcula o range exato em anos inteiros
+        # Usamos os timestamps brutos para o cálculo dos dias antes da formatação de string
+        range_anos = int((s.max() - s.min()).days / 365.25)
+
+        # 3. Extrai as séries de anos e meses para calcular as modas
+        anos = s.dt.year
+        meses = s.dt.month
+
+        relatorio.append({
+            'column': col,
+            'min': data_min,                                      
+            'max': data_max,                                   
+            'range_years': range_anos,                            
+            'unique_dates': s.nunique(),                 
+            'most_frequent_year': int(anos.mode().iloc[0]) if not anos.mode().empty else None,
+            'most_frequent_month': int(meses.mode().iloc[0]) if not meses.mode().empty else None
+        })
+
+    if not relatorio:
+        return pd.DataFrame()
+
+    return (
+        pd.DataFrame(relatorio)
+        .set_index('column')
+    )
+
 # =====================================================================
 # ANÁLISE UNIVARIADA — MÚLTIPLOS ARQUIVOS EXPLODIDOS
 # =====================================================================

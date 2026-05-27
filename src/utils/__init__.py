@@ -6,5 +6,6 @@ from .metrics import (
     numeric_summary, 
     categorical_summary, 
     exploded_files_summary,
-    testar_dependencia_categorica
+    testar_dependencia_categorica,
+    datetime_summary
 )

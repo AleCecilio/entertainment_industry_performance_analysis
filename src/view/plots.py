@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -108,6 +109,35 @@ def _get_entertainment_ticks():
         2_000_000_000  # $2B: O teto histórico da indústria
     ]
 
+def _desenhar_scatter_individual(ax, df_local, col_x, col_y):
+    """Função sutil de auxílio para padronizar a renderização estática do scatter."""
+    
+    # Renderiza os pontos
+    sns.scatterplot(
+        data=df_local,
+        x=col_x,
+        y=col_y,
+        alpha=0.5,      
+        color='#2A6FDB',
+        edgecolor='white',    
+        ax=ax
+    )
+    
+    # Linha de tendência analítica
+    sns.regplot(
+        data=df_local,
+        x=col_x,
+        y=col_y,
+        scatter=False,
+        color='#E63946',
+        line_kws={'linewidth': 1.5, 'alpha': 0.8},
+        ax=ax
+    )
+    
+    # Padronização de labels e eixos
+    ax.set_xlabel(col_x.replace('_', ' ').capitalize(), fontsize=10, fontweight='bold', color='#4A4E69')
+    ax.grid(axis='both', linestyle=':', alpha=0.5)
+    sns.despine(ax=ax)
 # =====================================================================
 #   Plots 
 # =====================================================================
@@ -220,37 +250,53 @@ def grafico_distribuicao_numerica(
         ax_hist.tick_params(axis='x', rotation=45)        
     else:
         match tipo_dado:
+            case 'popularidade' if usar_log:
+                ticks = [0.1, 1, 5, 10, 50, 100, 500, 1000]
+                ticks = [t for t in ticks if t <= s_plot.max() * 1.5]
+                labels = [str(t) for t in ticks]
+
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
+                ax_hist.tick_params(axis='x', rotation=0)
+            case 'popularidade':
+                formatter = ticker.FuncFormatter(lambda x, pos: f"{x:,.1f}" if x < 10 else f"{int(x)}")
+
+                ax_hist.xaxis.set_major_formatter(formatter)
+                ax_hist.tick_params(axis='x', rotation=0)
             case 'nota_10':
                 posicoes, rotulos = _get_nota_ticks_and_labels(escala=10)
+                
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
                 ax_hist.tick_params(axis='x', rotation=45)                 
             case 'nota_5':
                 posicoes, rotulos = _get_nota_ticks_and_labels(escala=5)
+
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
                 ax_hist.tick_params(axis='x', rotation=45)              
             case 'contagem' if usar_log:
-                # Contagem Exponencial (Log): Marcadores fixos nas potências de 10
                 ticks = _get_vote_count_ticks()
                 labels = [f"{t//1000}K" if t >= 1000 else str(t) for t in ticks]
+
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
                 ax_hist.tick_params(axis='x', rotation=45)
             case 'contagem':
-                # Contagem Convencional (Linear): O Matplotlib acha a posição, nós botamos a "roupa" limpa.
                 formatter = ticker.FuncFormatter(_formatar_numero)
+
                 ax_hist.xaxis.set_major_formatter(formatter)
                 ax_hist.tick_params(axis='x', rotation=45)       
             case 'moeda' if usar_log:
                 ticks = _get_entertainment_ticks()
                 labels = [_formatar_dinheiro(x) for x in ticks]
+
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
                 ax_hist.tick_params(axis='x', rotation=45) 
             case 'moeda':
-                # Moeda Convencional (Linear)
                 formatter = ticker.FuncFormatter(_formatar_dinheiro)
+
                 ax_hist.xaxis.set_major_formatter(formatter)
                 ax_hist.tick_params(axis='x', rotation=45)      
             case _:
@@ -441,7 +487,6 @@ def graficos_top_release(
 
     match data:
         case'year':
-            df['ano_lancamento'] = pd.to_datetime(df[coluna_data], errors='coerce').dt.year
             anos = pd.to_datetime(df[coluna_data], errors='coerce').dt.year
             anos = anos.dropna()
 
@@ -453,7 +498,6 @@ def graficos_top_release(
             top_release.columns = ['Ano', 'Contagem']
             top_release['Ano'] = top_release['Ano'].astype(int).astype(str)
         case 'month':
-            df['mes_lancamento'] = pd.to_datetime(df[coluna_data], errors='coerce').dt.month
             meses = pd.to_datetime(df[coluna_data], errors='coerce').dt.month
             meses = meses.dropna()
 
@@ -518,55 +562,90 @@ def graficos_top_release(
 
 
 def grafico_corr_scatter(
-        df_plot, 
-        coluna_x, 
-        coluna_y, 
-        titulo=None, 
-        tamanho_figura=None, 
-        polegadas=None,
-        limitar_eixos=True
+    df_plot, 
+    coluna_x, 
+    coluna_y, 
+    quant_grafs=1,
+    titulo=None, 
+    tamanho_figura=None, 
+    polegadas=None,
+    limitar_eixos=True
 ):
-    tamanho_figura, polegadas, _ = _set_config_graf(tamanho_figura, polegadas)
+    """
+    Plota gráficos de dispersão bivariados.
+    Ajusta dinamicamente a arquitetura do layout baseando-se no quant_grafs 
+    sem duplicar código de renderização.
+    """
 
-    fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
+    lista_x = [coluna_x] if isinstance(coluna_x, str) else list(coluna_x)
+    
+   # Definição da Estrutura de Telas (Grid e Proporções)
 
-    ax =  sns.scatterplot(
-        data=df_plot,
-        x=coluna_x,
-        y=coluna_y,
-        alpha=0.5,
-        color='#2A6FDB',
-        edgecolor='white',
-        linewidth=0.3
+    if quant_grafs == 1:
+        n_rows, n_cols = 1, 1
+       
+    elif quant_grafs <= 3:
+        n_rows, n_cols = 1, quant_grafs
+        if tamanho_figura is None:
+            tamanho_figura = (5.5 * n_cols, 4.5)
+    else:
+        n_cols = 2
+        n_rows = math.ceil(quant_grafs / n_cols)
+        if tamanho_figura is None:
+            tamanho_figura = (6.5 * n_cols, 4.2 * n_rows)
+
+    tamanho_figura, polegadas, width = _set_config_graf(tamanho_figura, polegadas)
+    
+
+    fig, axes = plt.subplots(
+        n_rows, 
+        n_cols, 
+        figsize=tamanho_figura, 
+        dpi=polegadas, 
+        sharey=False
     )
+    axes_flat = [axes] if quant_grafs == 1 else axes.flatten()
 
-    titulo = titulo if titulo else f"Relação entre {coluna_x} e {coluna_y}"
-    ax.set_title(titulo, fontsize=14, fontweight='bold')
-    ax.set_xlabel(coluna_x, fontsize=12)
-    ax.set_ylabel(coluna_y, fontsize=12)
+
+    # Laço Único de Renderização Eficiente
+    for i in range(len(axes_flat)):
+        ax = axes_flat[i]
+
+        # Remove quadrantes órfãos do grid
+        if i >= quant_grafs or i >= len(lista_x):
+            fig.delaxes(ax)
+            continue
+            
+        col_x = lista_x[i]
+        df_local = df_plot[[col_x, coluna_y]].dropna()
+        
+        _desenhar_scatter_individual(ax, df_local, col_x, coluna_y)
+        
+        # Controle de visibilidade do eixo Y para não poluir grids múltiplos
+        if quant_grafs == 1 or (i % n_cols == 0):
+            ax.set_ylabel(coluna_y.replace('_', ' ').capitalize(), fontsize=10, fontweight='bold', color='#4A4E69')
+        else:
+            ax.set_ylabel('')
+
+        # Filtro de Outliers por quadrante
+        if limitar_eixos:
+            ax.set_xlim(0, df_local[col_x].quantile(0.99))
+            ax.set_ylim(0, df_local[coluna_y].quantile(0.99))
+        else:
+            ax.set_xlim(0, df_local[col_x].max() * 1.1)
+            ax.set_ylim(0, df_local[coluna_y].max() * 1.1)
+
+
+    #  Ajustes de Margens e Meta-dados
+    titulo_real = titulo if titulo else f"Análise de Correlação com {coluna_y.replace('_', ' ').capitalize()}"
+    fig.suptitle(titulo_real, fontsize=14, fontweight='bold', color='#2B2D42')
+
+    # Ajuste milimétrico de margem dependendo da quantidade de linhas
+    plt.subplots_adjust(top=0.88 if n_rows > 1 else 0.85, hspace=0.35, wspace=0.25)
 
     if limitar_eixos:
-        ax.set_xlim(0, df_plot[coluna_x].quantile(0.99))
-        ax.set_ylim(0, df_plot[coluna_y].quantile(0.99))
-
-        texto_rodape = (
-            "Obsevação: Os Eixos estão limitados ao percentil 99 para evitar distorção por outliers extremos."
-        )
-
-        fig.text(
-            0.02,
-            -0.06,
-            texto_rodape,
-            fontsize=10,
-            style='italic',
-            color='#4A4E69'
-        )
-    else:
-        ax.set_xlim(0, df_plot[coluna_x].max() * 1.1)
-        ax.set_ylim(0, df_plot[coluna_y].max() * 1.1)
-
-    fig.subplots_adjust(bottom=0.18)
-    plt.tight_layout() 
+        texto_rodape = "* Observação: Os eixos estão limitados ao percentil 99 para mitigar distorções de outliers extremos."
+        fig.text(0.02, -0.02 if n_rows > 1 else -0.05, texto_rodape, fontsize=9, style='italic', color='#4A4E69')
 
     plt.show()
 

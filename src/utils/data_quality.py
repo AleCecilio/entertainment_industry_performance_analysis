@@ -2,13 +2,34 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+# =====================================================================
+# DETECTOR UNIVERSAL DE COLUNAS DE DATA (Heurística Dinâmica)
+# =====================================================================
+
+def _identificar_colunas_data(df):
+    """Identifica dinamicamente quais colunas são de data/hora no dataframe."""
+    cols_data = []
+    for c in df.columns:
+        if not ('date' in c.lower() or 'data' in c.lower() or 'time' in c.lower()):
+            continue
+        if pd.api.types.is_numeric_dtype(df[c]):
+            continue
+        amostra = df[c].dropna().head(5).astype(str)
+        if not amostra.empty and amostra.str.isnumeric().all():
+            continue
+        cols_data.append(c)
+    return cols_data
 
 # =====================================================================
 # FUNÇÕES AUXILIARES — cada uma retorna uma Série com sufixo no índice
 # =====================================================================
 
 def _data_missing_nan(df):
-    n = df.isnull().sum()
+    cols_data = _identificar_colunas_data(df)
+    cols_para_checar = [c for c in df.columns if c not in cols_data]
+    if not cols_para_checar:
+        return pd.Series(dtype='int64')
+    n = df[cols_para_checar].isnull().sum()
     n.index = n.index + ' (Valores NaN)'
     return n
 
@@ -28,26 +49,21 @@ def _data_missing_list(df):
     return n
 
 def _data_missing_datetime(df):
-    cols_data = [
-        c for c in df.columns
-        if 'date' in c.lower()
-        or 'data' in c.lower()
-        or 'time' in c.lower()
-    ]
+    cols_data = _identificar_colunas_data(df)
+    
     series = []
     for col in cols_data:
         converted = pd.to_datetime(df[col], errors='coerce')
-        nat_count = converted.isna().sum()
+        total_nat = converted.isna().sum()
         series.append(
             pd.Series(
-                nat_count,
+                total_nat,
                 index=[f'{col} (Valores NaT)']
             )
         )
     if series:
         return pd.concat(series)
     return pd.Series(dtype='int64')
-
 
 # =====================================================================
 # MAPA: tipo (string) → função correspondente
@@ -71,24 +87,6 @@ def resumo_qualidade(df, tipos=None):
     """
     Gera um DataFrame de diagnóstico de qualidade com contagem e percentual
     de dados faltantes, por tipo de "buraco".
-
-    Parâmetros
-    ----------
-    df    : DataFrame a ser analisado
-    tipos : lista de tipos a verificar. Opções:
-            'nan'         → valores nulos (NaN/None)
-            'numeric'     → zeros em colunas numéricas
-            'numeric_obj' → strings '0' em colunas objeto
-            'list'        → strings '[]' (listas vazias serializadas)
-            'datetime'    → valores NaT em colunas de data/hora
-            Padrão: todos os cinco tipos.
-
-    Retorno
-    -------
-    DataFrame com colunas:
-        'Quantidade'         → contagem absoluta de buracos
-        'Perda de Dados (%)' → percentual sobre o total de linhas
-    Ordenado do mais crítico para o menos crítico.
     """
     if tipos is None:
         tipos = _TIPOS_DEFAULT

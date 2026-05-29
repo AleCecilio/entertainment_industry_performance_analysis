@@ -649,13 +649,14 @@ def grafico_corr_scatter(
 
     plt.show()
 
-def grafico_dependencia_categorica_top_10(
+def grafico_dependencia_categorica(
     tabela_absoluta, 
     chi2, 
     p_valor, 
     titulo=None, 
     palette='YlGnBu', 
     polegadas=None,
+    top_n=10
 ):
     """
     Plota um Heatmap bivariado para avaliar a dependência entre duas variáveis categóricas.
@@ -667,14 +668,14 @@ def grafico_dependencia_categorica_top_10(
     top_genres = (
     tabela_absoluta.sum(axis=0)
     .sort_values(ascending=False)
-    .head(15)
+    .head(top_n)
     .index
     )
 
     top_languages = (
         tabela_absoluta.sum(axis=1)
         .sort_values(ascending=False)
-        .head(10)
+        .head(top_n)
         .index
     )
 
@@ -721,7 +722,7 @@ def grafico_dependencia_categorica_top_10(
     titulo_real = (
         titulo
         if titulo
-        else f"Análise Bivariada: {coluna_y.capitalize()} por {coluna_x.capitalize()}"
+        else f"Análise Bivariada: {top_n} {coluna_y.capitalize()} por {top_n} {coluna_x.capitalize()}"
     )
 
     plt.title(titulo_real, fontsize=14, fontweight='bold', pad=20)

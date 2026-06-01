@@ -92,6 +92,10 @@ def _config_celula_anomala(valor,valores_anomalos):
         };"
     )
 
+    # Evita quebra se o valor for um array/lista
+    if not np.isscalar(valor):
+        return ""
+
     #Checa se é nulo (caso 'NaN' ou None tenha sido passado na lista)
     if pd.isna(valor):
         return css_anomalia if (
@@ -163,8 +167,7 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )
@@ -208,8 +211,7 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )
@@ -250,8 +252,7 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )
@@ -304,8 +305,7 @@ def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valo
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )
@@ -345,8 +345,7 @@ def estilizar_comparativo(df, col_grupo, colunas_metrica, qtd_linhas=None, capti
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )
@@ -385,8 +384,7 @@ def estilizar_matriz_correlacao(df_corr, caption="Mapa de Relacionamento (Matriz
         estilo.map(
             lambda v: 'color: #888888;'
             'font-style: italic; '
-            if (not isinstance(v, (list, dict)) 
-            and pd.isna(v)) 
+            if (np.isscalar(v) and pd.isna(v)) 
             else ''
         ).format(_formatadores_html)
     )

@@ -647,6 +647,14 @@ def grafico_corr_scatter(
         texto_rodape = "* Observação: Os eixos estão limitados ao percentil 99 para mitigar distorções de outliers extremos."
         fig.text(0.02, -0.02 if n_rows > 1 else -0.05, texto_rodape, fontsize=9, style='italic', color='#4A4E69')
 
+    plt.subplots_adjust(
+        left=0.06,   # menor valor = mais para a esquerda
+        right=0.98,
+        top=0.88 if n_rows > 1 else 0.85,
+        hspace=0.35,
+        wspace=0.25
+    )
+    
     plt.show()
 
 def grafico_dependencia_categorica(

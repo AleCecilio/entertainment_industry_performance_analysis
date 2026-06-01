@@ -36,33 +36,35 @@ _GRADIENTES = {
 
 # =====================================================================
 #    MAPEAMENTO DE COLUNAS → CATEGORIA SEMÂNTICA
-#    Cobre nomes crus e limpos dos três datasets do projeto.
+#    Cobre nomes crus, limpos e os gerados na Harmonização (Canônicos)
 # =====================================================================
 _MAPA_COLUNAS = {
     # — Identificadores e Títulos —
     'index': 'identificador', 'level_0': 'identificador',
-    'id': 'identificador', 'Book Id': 'identificador', 'book_id': 'identificador',
+    'id': 'identificador', 'Book Id': 'identificador', 'book id': 'identificador', 'book_id': 'identificador',
     'anime_id': 'identificador', 'imdb_id': 'identificador',
     'isbn': 'identificador', 'isbn13': 'identificador',
     'title': 'identificador', 'Title': 'identificador',
     'original_title': 'identificador', 'title_english': 'identificador',
     'title_japanese': 'identificador', 'name': 'identificador',
 
-    # — Textos Longos e Contexto (Recomendado deixar sem cor de fundo para legibilidade) —
+    # — Textos Longos e Contexto —
     'overview': 'descritivo', 'tagline': 'descritivo',
 
     # — URLs, Imagens e Recursos Externos —
     'homepage': 'midia', 'poster_path': 'midia', 'image_url': 'midia',
 
-    # — Categorias Criativas —
+    # — Categorias Criativas & Classificações —
     'genres': 'criativo', 'genre': 'criativo',
     'belongs_to_collection': 'criativo', 'collection': 'criativo',
     'type': 'criativo', 'source': 'criativo', 'rating': 'criativo',
+    'popularity_tier': 'criativo', # <--- Nova Feature Global
 
     # — Entidades, Criadores e Estúdios —
     'Author': 'entidade', 'author': 'entidade', 'publisher': 'entidade',
     'production_companies': 'entidade', 'studio': 'entidade',
     'producer': 'entidade', 'licensor': 'entidade', 'director': 'entidade',
+    'producer_company': 'entidade', 
 
     # — Demografia e Geografia —
     'language_code': 'demografia', 'original_language': 'demografia',
@@ -74,10 +76,14 @@ _MAPA_COLUNAS = {
     'ratings_count': 'metrica', 'vote_count': 'metrica', 'scored_by': 'metrica',
     'popularity': 'metrica', 'rank': 'metrica', 'favorites': 'metrica',
     'members': 'metrica', 'text_reviews_count': 'metrica',
+    'total_votes': 'metrica', 
+    'global_score': 'metrica', 
+    'votes_per_year': 'metrica', # <--- Nova Feature Global
 
     # — Métricas Físicas (tamanho, duração) —
     'num_pages': 'metrica', 'runtime': 'metrica',
     'duration': 'metrica', 'episodes': 'metrica',
+    'content_length': 'metrica', 
 
     # — Financeiro —
     'budget': 'financeiro', 'revenue': 'financeiro', 'profit': 'financeiro',
@@ -87,16 +93,18 @@ _MAPA_COLUNAS = {
     'publication_date': 'data', 'release_date': 'data',
     'premiered': 'data', 'aired_string': 'data',
     'aired': 'data', 'status': 'data', 'year': 'data',
+    'release_year': 'data', 'decade': 'data', 'age_years': 'data', # <--- Novas Features Globais
 
     # — Booleanos e Flags —
     'is_franchise': 'booleano', 'adult': 'booleano', 'is_sequel': 'booleano',
-    'video': 'booleano', # Na API do TMDb, 'video' é True/False indicando se há asset de vídeo
+    'video': 'booleano',
 
     # --- Mapeamento de Volumes Temporários (Contagens) ---
     'Contagem': 'volume', 'contagem': 'volume', 'count': 'volume', 
 
     # --- Mapeamento de Proporções (Porcentagens) ---
     'porcentagem': 'proporcao', 'Porcentagem': 'proporcao', 'roi': 'proporcao',
+    'perda de dados (%)': 'proporcao', 'Perda de Dados (%)': 'proporcao',
 
     # --- Mapeamento de Correlações ---
     'correlacao': 'correlacao', 'Correlacao': 'correlacao',
@@ -112,11 +120,11 @@ _ESTILO_CABECALHO = [
         ('color', 'white'),
         ('text-align', 'left'),
         ('font-weight', 'bold'),
-        ('padding', '10px 15px'), # Ajustado para dar o mesmo respiro elegante do layout auto
+        ('padding', '10px 15px'), 
     ]},
     {'selector': 'td', 'props': [
         ('text-align', 'left'),
-        ('padding', '8px 15px'),  # Margem interna confortável
+        ('padding', '8px 15px'),  
     ]},
     {'selector': 'caption', 'props': [
         ('font-weight', 'bold'),
@@ -139,10 +147,8 @@ def _criar_formatador(padrao_string):
         if pd.isna(valor) or valor == "":
             return np.nan
         try:
-            # Força a conversão para float para aplicar a regra matemática 'f'
             return padrao_string.format(float(valor))
         except (ValueError, TypeError):
-            # Se for um texto que não vira número de jeito nenhum, exibe como texto
             return str(valor)
     return formatar
 
@@ -159,6 +165,7 @@ _FORMATADORES = {
     
     # --- Proporções e Porcentagens ---
     'roi':                _criar_formatador('{:.1f}%'),
+    'perda de dados (%)': _criar_formatador('{:.2f}%'),
     'Perda de Dados (%)': _criar_formatador('{:.2f}%'),
     'porcentagem':        _criar_formatador('{:.2f}%'),
     'Porcentagem':        _criar_formatador('{:.2f}%'),
@@ -169,23 +176,24 @@ _FORMATADORES = {
     'count':         _criar_formatador('{:,.0f}'),
     'vote_count':    _criar_formatador('{:,.0f}'),
     'ratings_count': _criar_formatador('{:,.0f}'),
+    'total_votes':   _criar_formatador('{:,.0f}'),  
+    'votes_per_year':_criar_formatador('{:,.0f}'), # <--- Nova Feature Global
     
     # --- Notas e Popularidade ---
-    'vote_average':   _criar_formatador('{:.1f}'),
-    'average_rating': _criar_formatador('{:.2f}'),
-    'score':          _criar_formatador('{:.2f}'),
-    'popularity':     _criar_formatador('{:.2f}'),
+    'vote_average':    _criar_formatador('{:.1f}'),
+    'average_rating':  _criar_formatador('{:.2f}'),
+    'score':           _criar_formatador('{:.2f}'),
+    'popularity':      _criar_formatador('{:.2f}'),
+    'global_score': _criar_formatador('{:.2f}'), 
     
-    # --- Grandezas Físicas ---
-    'runtime':   _criar_formatador('{:.0f} min'),
-    'num_pages': _criar_formatador('{:,.0f} págs'),
+    # --- Grandezas Físicas e Temporais ---
+    'runtime':        _criar_formatador('{:.0f} min'),
+    'num_pages':      _criar_formatador('{:,.0f} págs'),
+    'content_length': _criar_formatador('{:,.0f}'),  
+    'release_year':   _criar_formatador('{:.0f}'),      # <--- Sem vírgula para anos
+    'age_years':      _criar_formatador('{:.0f} anos'), # <--- Sufixo descritivo
 
     # --- Correlação (Coeficiente puro, SEM porcentagem) ---
     'correlacao': _criar_formatador('{:.2f}'),
     'Correlacao': _criar_formatador('{:.2f}'),
 }
-
-
-
-
-

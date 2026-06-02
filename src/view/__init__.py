@@ -1,4 +1,4 @@
-from .style_config import (
+from ._style_config import (
     _CORES, 
     _GRADIENTES, 
     _MAPA_COLUNAS, 

@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from IPython.display import display, HTML
-from .style_config import (
+from ._style_config import (
     _CORES, 
     _GRADIENTES, 
     _MAPA_COLUNAS, 

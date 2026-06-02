@@ -4,12 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 from ._config import _set_config_graf
-from ._formatters import (
-    _formatar_dinheiro,
-    _get_nota_ticks_and_labels,
-    _get_vote_count_ticks,
-    _get_entertainment_ticks
-)
+from ._formatters import _formatar_eixo_numerico
+
 
 
 # ===== Combo Boxplot + Histograma com KDE para Variáveis Numéricas =====
@@ -52,73 +48,14 @@ def grafico_distribuicao_numerica(
         ax_box.xaxis.set_minor_locator(ticker.NullLocator())
 
     # ===== Configuração Dinâmica do Eixo X por Tipo de Dado =====
-
-    if valores_eixo_x is not None:
-        ax_hist.xaxis.set_major_locator(ticker.FixedLocator(valores_eixo_x))
-        labels = (
-            [_formatar_dinheiro(x) for x in valores_eixo_x]
-            if tipo_dado == 'moeda'
-            else [str(x) for x in valores_eixo_x]
+        _formatar_eixo_numerico(
+            ax=ax_hist, 
+            s_plot=s_plot, 
+            usar_log=usar_log, 
+            tipo_dado=tipo_dado,
+            valores_eixo=valores_eixo_x,
+            eixo='x'
         )
-        ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
-        ax_hist.tick_params(axis='x', rotation=45)
-    else:
-        match tipo_dado:
-            case 'popularidade' if usar_log:
-                ticks = [0.1, 1, 5, 10, 50, 100, 500, 1000]
-                ticks = [t for t in ticks if t <= s_plot.max() * 1.5]
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter([str(t) for t in ticks]))
-                ax_hist.tick_params(axis='x', rotation=0)
-
-            case 'popularidade':
-                formatter = ticker.FuncFormatter(lambda x, pos: f"{x:,.1f}" if x < 10 else f"{int(x)}")
-                ax_hist.xaxis.set_major_formatter(formatter)
-                ax_hist.tick_params(axis='x', rotation=0)
-
-            case 'nota_100':
-                posicoes, rotulos = _get_nota_ticks_and_labels(escala=100)
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'nota_10':
-                posicoes, rotulos = _get_nota_ticks_and_labels(escala=10)
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'nota_5':
-                posicoes, rotulos = _get_nota_ticks_and_labels(escala=5)
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'contagem' if usar_log:
-                ticks = _get_vote_count_ticks()
-                labels = [f"{t//1000}K" if t >= 1000 else str(t) for t in ticks]
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'contagem':
-                from ._formatters import _formatar_numero
-                ax_hist.xaxis.set_major_formatter(ticker.FuncFormatter(_formatar_numero))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'moeda' if usar_log:
-                ticks = _get_entertainment_ticks()
-                labels = [_formatar_dinheiro(x) for x in ticks]
-                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
-                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case 'moeda':
-                ax_hist.xaxis.set_major_formatter(ticker.FuncFormatter(_formatar_dinheiro))
-                ax_hist.tick_params(axis='x', rotation=45)
-
-            case _:
-                pass
 
     # ===== Estilização de Títulos e Eixos =====
 

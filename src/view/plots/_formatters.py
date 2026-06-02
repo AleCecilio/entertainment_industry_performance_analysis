@@ -1,3 +1,5 @@
+import matplotlib.ticker as ticker
+
 # ===== Formatador de Números Grandes (K, M, B) =====
 
 def _formatar_numero(x, pos=None):
@@ -94,3 +96,94 @@ def _get_entertainment_ticks():
         1_000_000_000,
         2_000_000_000
     ]
+
+# ==============================================================================
+# FUNÇÃO AUXILIAR: FORMATAÇÃO DO EIXO X (Distribuição Numérica)
+# ==============================================================================
+
+def _formatar_eixo_numerico(
+        ax, 
+        s_plot, 
+        usar_log, 
+        tipo_dado, 
+        valores_eixo=None,
+        eixo='x'
+):
+    """Aplica as regras de formatação (dinheiro, notas, votos) no eixo especificado (X ou Y)."""
+    
+    # 1. Define dinamicamente o objeto do eixo e a escala logarítmica
+    axis_obj = ax.yaxis if eixo == 'y' else ax.xaxis
+    
+    if usar_log:
+        ax.set_yscale('log') if eixo == 'y' else ax.set_xscale('log')
+        axis_obj.set_minor_locator(ticker.NullLocator())
+
+    # 2. Formatação manual via valores fornecidos
+    if valores_eixo is not None:
+        axis_obj.set_major_locator(ticker.FixedLocator(valores_eixo))
+        labels = (
+            [_formatar_dinheiro(x) for x in valores_eixo]
+            if tipo_dado == 'moeda'
+            else [str(x) for x in valores_eixo]
+        )
+        axis_obj.set_major_formatter(ticker.FixedFormatter(labels))
+        ax.tick_params(axis=eixo, rotation=45)
+        return
+
+    # 3. Formatação automática baseada no tipo de dado
+    match tipo_dado:
+        case 'popularidade' if usar_log:
+            ticks = [0.1, 1, 5, 10, 50, 100, 500, 1000]
+            ticks = [t for t in ticks if t <= s_plot.max() * 1.5]
+            axis_obj.set_major_locator(ticker.FixedLocator(ticks))
+            axis_obj.set_major_formatter(ticker.FixedFormatter([str(t) for t in ticks]))
+            ax.tick_params(axis=eixo, rotation=0)
+
+        case 'popularidade':
+            formatter = ticker.FuncFormatter(lambda x, pos: f"{x:,.1f}" if x < 10 else f"{int(x)}")
+            axis_obj.set_major_formatter(formatter)
+            ax.tick_params(axis=eixo, rotation=0)
+
+        case 'nota_100':
+            posicoes, rotulos = _get_nota_ticks_and_labels(escala=100)
+            axis_obj.set_major_locator(ticker.FixedLocator(posicoes))
+            axis_obj.set_major_formatter(ticker.FixedFormatter(rotulos))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'nota_10':
+            posicoes, rotulos = _get_nota_ticks_and_labels(escala=10)
+            axis_obj.set_major_locator(ticker.FixedLocator(posicoes))
+            axis_obj.set_major_formatter(ticker.FixedFormatter(rotulos))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'nota_5':
+            posicoes, rotulos = _get_nota_ticks_and_labels(escala=5)
+            axis_obj.set_major_locator(ticker.FixedLocator(posicoes))
+            axis_obj.set_major_formatter(ticker.FixedFormatter(rotulos))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'contagem' if usar_log:
+            ticks = _get_vote_count_ticks()
+            labels = [f"{t//1000}K" if t >= 1000 else str(t) for t in ticks]
+            axis_obj.set_major_locator(ticker.FixedLocator(ticks))
+            axis_obj.set_major_formatter(ticker.FixedFormatter(labels))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'contagem':
+            from ._formatters import _formatar_numero
+            axis_obj.set_major_formatter(ticker.FuncFormatter(_formatar_numero))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'moeda' if usar_log:
+            ticks = _get_entertainment_ticks()
+            labels = [_formatar_dinheiro(x) for x in ticks]
+            axis_obj.set_major_locator(ticker.FixedLocator(ticks))
+            axis_obj.set_major_formatter(ticker.FixedFormatter(labels))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case 'moeda':
+            axis_obj.set_major_formatter(ticker.FuncFormatter(_formatar_dinheiro))
+            ax.tick_params(axis=eixo, rotation=45)
+
+        case _:
+            pass

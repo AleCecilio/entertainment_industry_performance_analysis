@@ -1,4 +1,5 @@
 import math
+from unittest import case
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -75,18 +76,29 @@ def _get_nota_ticks_and_labels(escala=10):
     Gera marcadores dinâmicos para notas. 
     Se escala=5 (Livros/Goodreads). Se escala=10 (Filmes/Animes).
     """
-    if escala == 5:
-        dicionario_notas = {
-            0.0: "0 (S/ Nota)", 1.0: "1 (Péssimo)", 2.0: "2 (Ruim)",
-            3.0: "3 (Regular)", 4.0: "4 (Muito Bom)", 5.0: "5 (Obra-Prima)"
-        }
-    else:
-        dicionario_notas = {
-            0.0: "0 (S/ Nota)", 1.0: "1 (Desastre)", 2.0: "2 (Péssimo)",
-            3.0: "3 (Ruim)", 4.0: "4 (Fraco)", 5.0: "5 (Regular)",
-            6.0: "6 (Ok)", 7.0: "7 (Bom)", 8.0: "8 (Ótimo)",
-            9.0: "9 (Excelente)", 10.0: "10 (Obra-Prima)"
-        }
+    match escala:
+        case 5:
+            dicionario_notas = {
+                0.0: "0 (S/ Nota)", 1.0: "1 (Péssimo)", 2.0: "2 (Ruim)",
+                3.0: "3 (Regular)", 4.0: "4 (Muito Bom)", 5.0: "5 (Obra-Prima)"
+            } 
+        case 10:
+            dicionario_notas = {
+                0.0: "0 (S/ Nota)", 1.0: "1 (Desastre)", 2.0: "2 (Péssimo)",
+                3.0: "3 (Ruim)", 4.0: "4 (Fraco)", 5.0: "5 (Regular)",
+                6.0: "6 (Ok)", 7.0: "7 (Bom)", 8.0: "8 (Ótimo)",
+                9.0: "9 (Excelente)", 10.0: "10 (Obra-Prima)"
+            }
+        case 100:
+            dicionario_notas = {
+                0.0: "0 (S/ Nota)", 10.0: "10 (Desastre)", 20.0: "20 (Péssimo)",
+                30.0: "30 (Ruim)", 40.0: "40 (Fraco)", 50.0: "50 (Regular)",
+                60.0: "60 (Ok)", 70.0: "70 (Bom)", 80.0: "80 (Ótimo)",
+                90.0: "90 (Excelente)", 100.0: "100 (Obra-Prima)"
+            }
+        case _:
+            raise ValueError("Escala inválida.")
+        
         
     posicoes = list(dicionario_notas.keys())
     rotulos = list(dicionario_notas.values())
@@ -258,23 +270,34 @@ def grafico_distribuicao_numerica(
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
                 ax_hist.tick_params(axis='x', rotation=0)
+
             case 'popularidade':
                 formatter = ticker.FuncFormatter(lambda x, pos: f"{x:,.1f}" if x < 10 else f"{int(x)}")
 
                 ax_hist.xaxis.set_major_formatter(formatter)
                 ax_hist.tick_params(axis='x', rotation=0)
+
+            case 'nota_100':
+                posicoes, rotulos = _get_nota_ticks_and_labels(escala=100)
+                
+                ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
+                ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
+                ax_hist.tick_params(axis='x', rotation=45)               
+
             case 'nota_10':
                 posicoes, rotulos = _get_nota_ticks_and_labels(escala=10)
                 
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
-                ax_hist.tick_params(axis='x', rotation=45)                 
+                ax_hist.tick_params(axis='x', rotation=45)      
+
             case 'nota_5':
                 posicoes, rotulos = _get_nota_ticks_and_labels(escala=5)
 
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(posicoes))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(rotulos))
-                ax_hist.tick_params(axis='x', rotation=45)              
+                ax_hist.tick_params(axis='x', rotation=45)    
+
             case 'contagem' if usar_log:
                 ticks = _get_vote_count_ticks()
                 labels = [f"{t//1000}K" if t >= 1000 else str(t) for t in ticks]
@@ -282,11 +305,13 @@ def grafico_distribuicao_numerica(
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
                 ax_hist.tick_params(axis='x', rotation=45)
+
             case 'contagem':
                 formatter = ticker.FuncFormatter(_formatar_numero)
 
                 ax_hist.xaxis.set_major_formatter(formatter)
-                ax_hist.tick_params(axis='x', rotation=45)       
+                ax_hist.tick_params(axis='x', rotation=45)     
+
             case 'moeda' if usar_log:
                 ticks = _get_entertainment_ticks()
                 labels = [_formatar_dinheiro(x) for x in ticks]
@@ -294,11 +319,13 @@ def grafico_distribuicao_numerica(
                 ax_hist.xaxis.set_major_locator(ticker.FixedLocator(ticks))
                 ax_hist.xaxis.set_major_formatter(ticker.FixedFormatter(labels))
                 ax_hist.tick_params(axis='x', rotation=45) 
+
             case 'moeda':
                 formatter = ticker.FuncFormatter(_formatar_dinheiro)
 
                 ax_hist.xaxis.set_major_formatter(formatter)
                 ax_hist.tick_params(axis='x', rotation=45)      
+
             case _:
                 pass
     
@@ -468,63 +495,66 @@ def grafico_top_categorias(
     plt.tight_layout()
     plt.show()
 
-def graficos_top_release(
+def grafico_top_tempo(
         df, 
-        coluna_data, 
+        coluna, 
         top_n=10, 
         titulo=None, 
         palette='viridis', 
         tamanho_figura=None, 
         polegadas=None, 
         width=None,
-        data='year'
+        extracao=None 
     ):
     """
-    Plota os anos de lançamento mais frequentes em um gráfico de barras horizontais.
-    Extrai o ano da coluna de data e calcula a frequência para os top_n anos.
+    Plota as frequências das variáveis relacionadas a tempo (anos, décadas, idade, meses).
+    Se 'extracao' for 'month' ou 'year', tenta extrair a informação de uma coluna datetime.
+    Caso contrário, assume que a coluna já está formatada (int, string) e conta os valores diretamente.
     """
     tamanho_figura, polegadas, width = _set_config_graf(tamanho_figura, polegadas, width)
 
-    match data:
-        case'year':
-            anos = pd.to_datetime(df[coluna_data], errors='coerce').dt.year
-            anos = anos.dropna()
+    # 1. Tratamento e Extração de Dados
+    if extracao == 'year':
+        dados = pd.to_datetime(df[coluna], errors='coerce').dt.year.dropna()
+        nome_eixo = 'Ano'
+    elif extracao == 'month':
+        dados = pd.to_datetime(df[coluna], errors='coerce').dt.month.dropna()
+        nome_eixo = 'Mês'
+    else:
+        # Pega a coluna no formato nativo (int, string, etc)
+        dados = df[coluna].dropna()
+        # Formata o nome do eixo para ficar bonito (ex: 'age_years' vira 'Age Years')
+        nome_eixo = coluna.replace('_', ' ').title()
 
-            top_release = (
-                anos.value_counts()
-                .head(top_n)
-                .reset_index()
-            )
-            top_release.columns = ['Ano', 'Contagem']
-            top_release['Ano'] = top_release['Ano'].astype(int).astype(str)
-        case 'month':
-            meses = pd.to_datetime(df[coluna_data], errors='coerce').dt.month
-            meses = meses.dropna()
+    # 2. Cálculo do Top N
+    top_release = (
+        dados.value_counts()
+        .head(top_n)
+        .reset_index()
+    )
+    top_release.columns = [nome_eixo, 'Contagem']
 
-            top_release = (
-                meses.value_counts()  
-                .head(top_n)
-                .reset_index()
-            )
+    # 3. Tipagem Defensiva para o Gráfico (Converte para string para garantir eixo categórico)
+    if pd.api.types.is_numeric_dtype(top_release[nome_eixo]):
+        top_release[nome_eixo] = top_release[nome_eixo].astype(int).astype(str)
+    else:
+        top_release[nome_eixo] = top_release[nome_eixo].astype(str)
 
-            top_release.columns = ['Mês', 'Contagem']
-            top_release['Mês'] = top_release['Mês'].astype(int).astype(str)
-        case _:
-            print(f"Erro: O parâmetro 'data' deve ser 'year' ou 'month'. Valor fornecido: '{data}'")
-            return
-
+    # 4. Configuração e Plotagem do Gráfico
     fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
 
     sns.barplot(
         x='Contagem',
-        y='Ano' if data == 'year' else 'Mês',
+        y=nome_eixo,
         data=top_release,
         palette=palette,
-        hue='Ano' if data == 'year' else 'Mês',
+        hue=nome_eixo,
         width=width,
+        legend=False, # Desativa legenda redundante do hue no seaborn moderno
         ax=ax
     )
 
+    # 5. Adição dos Rótulos (Labels)
     for container in ax.containers:
         ax.bar_label(
             container,
@@ -535,9 +565,8 @@ def graficos_top_release(
             color='#333333'
         )
 
-    titulo_real = titulo if titulo else f"Top {top_n} {
-        'Anos' if data == 'year' else 'Meses' 
-    } de Lançamento"
+    # 6. Estilização do Título e Eixos
+    titulo_real = titulo if titulo else f"Top {top_n} Frequências por {nome_eixo}"
 
     ax.set_title(
         titulo_real,
@@ -552,9 +581,7 @@ def graficos_top_release(
     ax.set_ylabel("")
 
     ax.grid(axis='x', alpha=0.2)
-
     ax.set_xlim(0, top_release['Contagem'].max() * 1.15)
-
     sns.despine()
 
     plt.tight_layout()

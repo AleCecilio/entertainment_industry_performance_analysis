@@ -106,7 +106,10 @@ def grafico_cat_vs_num_boxplot(
     nome_x, nome_y = cat_col.replace('_', ' ').title(), num_col.replace('_', ' ').title()
     ax.set_title(titulo if titulo else f"Boxplot: {nome_y} por {nome_x}", fontsize=14, pad=15)
     ax.set_xlabel(nome_x, fontsize=12)
-    ax.set_ylabel(f"{nome_y} (Log)" if usar_log else nome_y, fontsize=12)
+    if usar_log:
+        ax.set_ylabel(f"{num_col.capitalize()} (Escala Logarítmica)", fontsize=12)
+    else:
+        ax.set_ylabel(f"{num_col.capitalize()}", fontsize=12)
 
     ax.tick_params(axis='x', rotation=45)
     plt.setp(ax.get_xticklabels(), ha="right", rotation_mode="anchor")
@@ -166,11 +169,16 @@ def grafico_cat_vs_num_violinplot(
     nome_x, nome_y = cat_col.replace('_', ' ').title(), num_col.replace('_', ' ').title()
     ax.set_title(titulo if titulo else f"Densidade: {nome_y} por {nome_x}", fontsize=14, pad=15)
     ax.set_xlabel(nome_x, fontsize=12)
-    ax.set_ylabel(f"{nome_y} (Log)" if usar_log else nome_y, fontsize=12)
+    if usar_log:
+        ax.set_ylabel(f"{num_col.capitalize()} (Escala Logarítmica)", fontsize=12)
+    else:
+        ax.set_ylabel(f"{num_col.capitalize()}", fontsize=12)
 
     ax.tick_params(axis='x', rotation=45)
     plt.setp(ax.get_xticklabels(), ha="right", rotation_mode="anchor")
 
-    sns.despine()
+    
+
+    sns.despine(left=True, bottom=False)
     plt.tight_layout()
     plt.show()

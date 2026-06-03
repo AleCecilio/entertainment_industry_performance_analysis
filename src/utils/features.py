@@ -22,9 +22,39 @@ def explodir_dataset(df, coluna):
 
     return df_new
 
+def harmonizar_esquema_dados(df, tipo_midia):
+    """
+    Padroniza os nomes das colunas (Schema Alignment) para um Modelo Canónico em inglês
+    e garante que todas as colunas fiquem em letras minúsculas.
+    """
+    if tipo_midia == 'filme':
+        dicionario_renomeacao = {
+            'vote_average': 'average_rating',      
+            'vote_count': 'total_votes',     
+            'production_companies': 'producer_company',
+        }
+        
+    elif tipo_midia == 'livro':
+        dicionario_renomeacao = {
+            'ratings_count': 'total_votes',
+            'publication_date': 'release_date',    
+            'publisher': 'producer_company',
+            'language_code': 'original_language'
+        }
+        
+    else:
+        raise ValueError("Erro: O tipo_midia deve ser 'filme' ou 'livro'.")
+        
+    # 1. Aplica o mapeamento do modelo canônico
+    df = df.rename(columns=dicionario_renomeacao)
+    
+    # 2. Força absolutamente todas as colunas do DataFrame a ficarem em minúsculo
+    df.columns = df.columns.str.lower()
+    
+    return df
 
 
-def criar_features_globais(df, coluna, nota_maxima):
+def criar_features_globais(df, nota_maxima):
     """
     Cria uma coluna com o score global baseado na nota máxima.
     Gera métricas globais de negócio válidas tanto para filmes quanto para livros,
@@ -34,9 +64,9 @@ def criar_features_globais(df, coluna, nota_maxima):
     df_feat = df.copy()
 
     if nota_maxima == 5:
-        df_feat['global_score'] = (df_feat[coluna] / 5) * 100   
+        df_feat['global_score'] = (df_feat['average_rating'] / 5) * 100   
     elif nota_maxima == 10:
-        df_feat['global_score'] = (df_feat[coluna] / 10) * 100
+        df_feat['global_score'] = (df_feat['average_rating'] / 10) * 100
     
     # Garante que a release_date é do tipo datetime
     df_feat['release_date'] = pd.to_datetime(df_feat['release_date'], errors='coerce')
@@ -77,33 +107,3 @@ def criar_features_globais(df, coluna, nota_maxima):
 
 
 
-def harmonizar_esquema_dados(df, tipo_midia):
-    """
-    Padroniza os nomes das colunas (Schema Alignment) para um Modelo Canónico em inglês
-    e garante que todas as colunas fiquem em letras minúsculas.
-    """
-    if tipo_midia == 'filme':
-        dicionario_renomeacao = {
-            'vote_average': 'average_rating',      
-            'vote_count': 'total_votes',     
-            'production_companies': 'producer_company',
-        }
-        
-    elif tipo_midia == 'livro':
-        dicionario_renomeacao = {
-            'ratings_count': 'total_votes',
-            'publication_date': 'release_date',    
-            'publisher': 'producer_company',
-            'language_code': 'original_language'
-        }
-        
-    else:
-        raise ValueError("Erro: O tipo_midia deve ser 'filme' ou 'livro'.")
-        
-    # 1. Aplica o mapeamento do modelo canônico
-    df = df.rename(columns=dicionario_renomeacao)
-    
-    # 2. Força absolutamente todas as colunas do DataFrame a ficarem em minúsculo
-    df.columns = df.columns.str.lower()
-    
-    return df

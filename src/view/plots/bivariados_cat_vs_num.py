@@ -2,7 +2,6 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 from ._config import _set_config_graf
 from ._formatters import _formatar_eixo_numerico

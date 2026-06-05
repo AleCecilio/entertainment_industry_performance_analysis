@@ -10,3 +10,5 @@ from .bivariados_cat_vs_num import (
     grafico_cat_vs_num_boxplot,    
     grafico_cat_vs_num_violinplot
 )
+
+from .multivariados import grafico_pairplot_numericos

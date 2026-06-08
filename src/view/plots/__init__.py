@@ -17,4 +17,28 @@ from .bivariados import (
     grafico_cat_vs_num_violinplot
 )
 
-from .multivariados import grafico_pairplot_numericos
+from .multivariados import (
+    grafico_pairplot_numericos,
+    grafico_bubble_multivariado
+)
+
+__all__ = [
+    # qualidade
+    "grafico_percentual_missing_data",
+    
+    # univariados
+    "grafico_distribuicao_numerica",
+    "grafico_metricas_categorias", 
+    "grafico_top_categorias", 
+    "grafico_top_tempo",
+    
+    # bivariados
+    "grafico_corr_scatter", 
+    "grafico_dependencia_categorica",
+    "grafico_cat_vs_num_boxplot",    
+    "grafico_cat_vs_num_violinplot",
+    
+    # multivariados
+    "grafico_pairplot_numericos",
+    "grafico_bubble_multivariado"
+]

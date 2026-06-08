@@ -7,3 +7,13 @@ Módulos disponíveis:
 - utils: Métricas matemáticas, estatística e engenharia de features.
 - view: Estilização de tabelas e plotagem de gráficos.
 """
+
+from . import io
+from . import utils
+from . import view
+
+__all__ = [
+    "io",
+    "utils",
+    "view"
+]

@@ -3,7 +3,10 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from ._config import _set_config_graf
 from ._formatters import _formatar_eixo_numerico
+
+# ===== Gráfico Pairplot para Variáveis Numéricas =====
 
 def grafico_pairplot_numericos(       
         df_plot, 
@@ -122,4 +125,91 @@ def grafico_pairplot_numericos(
     titulo_real = titulo if titulo else 'Matriz de Correlação Multivariada'
     g.figure.suptitle(titulo_real, y=0.98, fontsize=18, fontweight='bold', color='#2B2D42')
     
+    plt.show()
+
+# ===== Gráfico Bubble Charts para Análise Multivariada =====
+
+def grafico_bubble_multivariado(
+        df_plot, 
+        x_col_dict,  # Ex: {'col': 'num_pages', 'tipo_dado': 'contagem', 'usar_log': False}
+        y_col_dict,  # Ex: {'col': 'average_rating', 'tipo_dado': 'nota_5', 'usar_log': False}
+        size_col=None, 
+        hue_col=None, 
+        titulo=None,
+        tamanho_figura=None,
+        polegadas=100,
+        alpha=0.6,
+        size_range=(20, 800),
+        palette='Set2'
+):
+    """
+    Gera um Gráfico de Bolhas (Bubble Chart) cruzando até 4 dimensões (X, Y, Tamanho e Cor).
+    """
+    
+    # Configuração Inicial e Extração de Nomes
+    tamanho_figura, polegadas, _ = _set_config_graf(tamanho_figura, polegadas)
+    
+    x_nome = x_col_dict.get('col')
+    y_nome = y_col_dict.get('col')
+    
+    df_clean = df_plot.copy()
+
+    # Blindagem Matemática (Tratamento de Zeros para Log)
+    if x_col_dict.get('usar_log', False):
+        df_clean[x_nome] = df_clean[x_nome].mask(df_clean[x_nome] <= 0, np.nan)
+        
+    if y_col_dict.get('usar_log', False):
+        df_clean[y_nome] = df_clean[y_nome].mask(df_clean[y_nome] <= 0, np.nan)
+
+    # Renderização do Gráfico
+    fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
+    
+    sns.scatterplot(
+        data=df_clean,
+        x=x_nome,
+        y=y_nome,
+        size=size_col,     
+        sizes=size_range,        
+        hue=hue_col,  
+        alpha=alpha,              
+        palette=palette,
+        edgecolor='w', 
+        ax=ax
+    )
+    
+    # Formatação Dinâmica dos Eixos (Não precisa de For Loop, é apenas um eixo!)
+    if x_col_dict.get('usar_log', False):
+        ax.set_xlim(left=df_clean[x_nome].min())
+        
+    _formatar_eixo_numerico(
+        ax=ax, 
+        s_plot=df_clean[x_nome], 
+        usar_log=x_col_dict.get('usar_log', False),
+        tipo_dado=x_col_dict.get('tipo_dado'),
+        valores_eixo=x_col_dict.get('valores_eixo'),
+        eixo='x'
+    )
+
+    if y_col_dict.get('usar_log', False):
+        ax.set_ylim(bottom=df_clean[y_nome].min())
+        
+    _formatar_eixo_numerico(
+        ax=ax, 
+        s_plot=df_clean[y_nome], 
+        usar_log=y_col_dict.get('usar_log', False),
+        tipo_dado=y_col_dict.get('tipo_dado'),
+        valores_eixo=y_col_dict.get('valores_eixo'),
+        eixo='y'
+    )
+    
+    # Estilização Final
+    plt.title(titulo if titulo else f"Bubble Chart: {x_nome} vs {y_nome}", fontsize=16, fontweight='bold', pad=15)
+    plt.xlabel(x_nome.replace('_', ' ').title(), fontsize=12)
+    plt.ylabel(y_nome.replace('_', ' ').title(), fontsize=12)
+    
+    # Move a legenda complexa (que junta Cor e Tamanho) para fora do gráfico
+    if hue_col or size_col:
+        sns.move_legend(ax, "upper left", bbox_to_anchor=(1.02, 1), title_fontsize=12, frameon=True)
+    
+    plt.tight_layout()
     plt.show()

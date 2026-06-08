@@ -1,7 +1,10 @@
 import numpy as np
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
+import plotly.express as px
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from pandas.plotting import parallel_coordinates
 
 from ._config import _set_config_graf
 from ._formatters import _formatar_eixo_numerico
@@ -140,7 +143,7 @@ def grafico_bubble_multivariado(
         polegadas=100,
         alpha=0.6,
         size_range=(20, 800),
-        palette='Set2'
+        palette='Set1'
 ):
     """
     Gera um Gráfico de Bolhas (Bubble Chart) cruzando até 4 dimensões (X, Y, Tamanho e Cor).
@@ -213,3 +216,122 @@ def grafico_bubble_multivariado(
     
     plt.tight_layout()
     plt.show()
+
+# ===== Gráfico de Coordenadas Paralelas =====
+
+def grafico_coordenadas_paralelas(
+        df_plot, 
+        colunas_jornada, 
+        coluna_categoria, 
+        titulo=None, 
+        tamanho_figura=None,
+        polegadas=100,
+        amostra=600, 
+        alpha=0.5,
+        palette='Set2'
+):
+    """
+    Gera um Gráfico de Coordenadas Paralelas aplicando Normalização MinMax 
+    automaticamente para alinhar escalas diferentes.
+    """
+    tamanho_figura, polegadas, _ = _set_config_graf(tamanho_figura, polegadas)
+
+    df_plot = df_plot[colunas_jornada + [coluna_categoria]].copy()
+
+    # Amostragem para evitar o "Efeito Esparguete"
+    if len(df_plot) > amostra:
+        df_plot = df_plot.sample(n=amostra, random_state=42)
+        
+    # Normalização Inteligente (MinMaxScaler: converte tudo para 0 a 1)
+    scaler = MinMaxScaler()
+    df_scaled = df_plot.copy()
+    df_scaled[colunas_jornada] = scaler.fit_transform(df_scaled[colunas_jornada])
+    
+    # Extração de Cores do Seaborn para o Pandas
+    categorias_unicas = df_scaled[coluna_categoria].unique()
+    paleta_cores = sns.color_palette(palette, n_colors=len(categorias_unicas)).as_hex()
+    
+    # Renderização do Gráfico
+    plt.figure(figsize=tamanho_figura, dpi=polegadas)
+    
+    ax = parallel_coordinates(
+        df_scaled,
+        class_column=coluna_categoria,
+        color=paleta_cores,
+        alpha=alpha,
+        linewidth=1.5
+    )
+    
+    # Estilização
+    plt.title(
+        titulo if titulo 
+        else f"Perfil Multivariado (Normalizado 0-1) por {coluna_categoria}", 
+        fontsize=16, 
+        fontweight='bold', 
+        pad=15
+    )
+    plt.ylabel("Escala Relativa (0 = Mínimo | 1 = Máximo)", fontsize=12)
+    
+    # Limpar a grade do eixo Y pois os valores absolutos não importam mais, apenas a posição relativa
+    ax.set_yticks([0, 0.25, 0.5, 0.75, 1])
+    ax.set_yticklabels(['0%', '25%', '50%', '75%', '100%'])
+    
+    # Melhorar a leitura dos rótulos do eixo X
+    plt.xticks(fontsize=11, fontweight='bold')
+    
+    # Ajustar Legenda
+    plt.legend(title=coluna_categoria.replace('_', ' ').title(), bbox_to_anchor=(1.02, 1), loc='upper left', frameon=True)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def grafico_coordenadas_paralelas_interativo(
+        df_plot, 
+        colunas_jornada, 
+        coluna_categoria, 
+        titulo="O DNA do Sucesso Editorial",
+        amostra=800
+):
+    """
+    Gera um Gráfico de Coordenadas Paralelas Interativo usando Plotly.
+    Permite arrastar eixos e filtrar dados selecionando intervalos com o rato.
+    """
+    # Filtro e Amostragem (Evitar o "Efeito Esparguete")
+    df_plot = df_plot[colunas_jornada + [coluna_categoria]].copy()
+    if len(df_plot) > amostra:
+        df_plot = df_plot.sample(n=amostra, random_state=42)
+        
+    # Normalização Inteligente (0 a 1)
+    scaler = MinMaxScaler()
+    df_scaled = df_plot.copy()
+    df_scaled[colunas_jornada] = scaler.fit_transform(df_scaled[colunas_jornada])
+    
+    # Mapeamento Categórico para o Plotly (O Plotly exige IDs numéricos para as linhas)
+    categorias = df_scaled[coluna_categoria].unique()
+    mapa_ids = {cat: i for i, cat in enumerate(categorias)}
+    df_scaled['Categoria_ID'] = df_scaled[coluna_categoria].map(mapa_ids)
+    
+    # Renderização 
+    fig = px.parallel_coordinates(
+        df_scaled,
+        dimensions=colunas_jornada,
+        color='Categoria_ID',
+        color_continuous_scale=[
+            (0.00, '#D65F5F'), # Vermelho Suave
+            (0.33, '#48A365'), # Verde Sálvia
+            (0.66, '#5E81AC'), # Azul Nórdico
+            (1.00, '#D79921')  # Amarelo Mostarda
+        ],
+        title=f"<b>{titulo}</b>",
+        labels={col: col.replace('_', ' ').title() for col in colunas_jornada}
+    )
+    
+    # Esconder a barra lateral de cor (já que as nossas cores representam categorias puras)
+    fig.update_layout(
+        coloraxis_showscale=False,
+        font=dict(size=12),
+        margin=dict(l=50, r=50, b=50, t=80)
+    )
+    
+    fig.show()

@@ -19,7 +19,9 @@ from .bivariados import (
 
 from .multivariados import (
     grafico_pairplot_numericos,
-    grafico_bubble_multivariado
+    grafico_bubble_multivariado,
+    grafico_coordenadas_paralelas,
+    grafico_coordenadas_paralelas_interativo
 )
 
 __all__ = [
@@ -40,5 +42,7 @@ __all__ = [
     
     # multivariados
     "grafico_pairplot_numericos",
-    "grafico_bubble_multivariado"
+    "grafico_bubble_multivariado",
+    "grafico_coordenadas_paralelas",
+    "grafico_coordenadas_paralelas_interativo"
 ]

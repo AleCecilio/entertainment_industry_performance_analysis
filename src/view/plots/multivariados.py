@@ -287,51 +287,111 @@ def grafico_coordenadas_paralelas(
 
 
 def grafico_coordenadas_paralelas_interativo(
-        df_plot, 
-        colunas_jornada, 
-        coluna_categoria, 
-        titulo="O DNA do Sucesso Editorial",
+        df_plot,
+        colunas_jornada,
+        coluna_categoria,
+        titulo='Gráfico Coordenadas Paralelas',
         amostra=800
 ):
     """
     Gera um Gráfico de Coordenadas Paralelas Interativo usando Plotly.
     Permite arrastar eixos e filtrar dados selecionando intervalos com o rato.
+    Inclui legenda dinâmica para qualquer variável categórica.
     """
+
     # Filtro e Amostragem (Evitar o "Efeito Esparguete")
     df_plot = df_plot[colunas_jornada + [coluna_categoria]].copy()
+
     if len(df_plot) > amostra:
         df_plot = df_plot.sample(n=amostra, random_state=42)
-        
+
     # Normalização Inteligente (0 a 1)
     scaler = MinMaxScaler()
     df_scaled = df_plot.copy()
-    df_scaled[colunas_jornada] = scaler.fit_transform(df_scaled[colunas_jornada])
-    
-    # Mapeamento Categórico para o Plotly (O Plotly exige IDs numéricos para as linhas)
-    categorias = df_scaled[coluna_categoria].unique()
+    df_scaled[colunas_jornada] = scaler.fit_transform(
+        df_scaled[colunas_jornada]
+    )
+
+    # Categorias encontradas
+    categorias = sorted(df_scaled[coluna_categoria].dropna().unique())
+
+    # IDs numéricos para o Plotly
     mapa_ids = {cat: i for i, cat in enumerate(categorias)}
-    df_scaled['Categoria_ID'] = df_scaled[coluna_categoria].map(mapa_ids)
-    
-    # Renderização 
+    df_scaled["Categoria_ID"] = (
+        df_scaled[coluna_categoria].map(mapa_ids)
+    )
+
+    # Paleta reutilizável
+    cores = [
+        "#D65F5F",  # vermelho suave
+        "#48A365",  # verde sálvia
+        "#5E81AC",  # azul nórdico
+        "#D79921",  # amarelo mostarda
+        "#8E6C8A",  # roxo
+        "#4C9F9F",  # turquesa
+        "#C97B63",  # terracota
+        "#6B7280",  # cinza
+    ]
+
+    # Escala contínua baseada no número de categorias
+    if len(categorias) == 1:
+        color_scale = [(0, cores[0]), (1, cores[0])]
+    else:
+        color_scale = [
+            (
+                i / (len(categorias) - 1),
+                cores[i % len(cores)]
+            )
+            for i in range(len(categorias))
+        ]
+
+    # Criação do gráfico
     fig = px.parallel_coordinates(
         df_scaled,
         dimensions=colunas_jornada,
-        color='Categoria_ID',
-        color_continuous_scale=[
-            (0.00, '#D65F5F'), # Vermelho Suave
-            (0.33, '#48A365'), # Verde Sálvia
-            (0.66, '#5E81AC'), # Azul Nórdico
-            (1.00, '#D79921')  # Amarelo Mostarda
-        ],
+        color="Categoria_ID",
+        color_continuous_scale=color_scale,
         title=f"<b>{titulo}</b>",
-        labels={col: col.replace('_', ' ').title() for col in colunas_jornada}
+        labels={
+            col: col.replace("_", " ").title()
+            for col in colunas_jornada
+        }
     )
-    
-    # Esconder a barra lateral de cor (já que as nossas cores representam categorias puras)
+
+    # Construção dinâmica da legenda
+    legenda_html = "<b>Categorias</b><br>"
+
+    for i, categoria in enumerate(categorias):
+        cor = cores[i % len(cores)]
+        legenda_html += (
+            f'<span style="color:{cor};">■</span> '
+            f'{categoria}<br>'
+        )
+
+    fig.add_annotation(
+        text=legenda_html,
+        x=1.22,          
+        y=1,
+        xref="paper",
+        yref="paper",
+        showarrow=False,
+        align="left",
+        bordercolor="lightgray",
+        borderwidth=1,
+        bgcolor="white",
+        font=dict(size=12)
+    )
+
+    # Layout
     fig.update_layout(
         coloraxis_showscale=False,
         font=dict(size=12),
-        margin=dict(l=50, r=50, b=50, t=80)
+        margin=dict(
+            l=50,
+            r=150,   
+            b=50,
+            t=80
+        )
     )
-    
+
     fig.show()

@@ -101,15 +101,21 @@ def _get_nota_ticks_and_labels(escala=10):
 
 # ===== Ticks Financeiros para a Indústria do Entretenimento =====
 
-def _get_entertainment_ticks():
+def _get_entertainment_ticks(pairplot=False):
     """
     Marcadores financeiros estratégicos para escalas logarítmicas
-    cobrindo Literatura, Anime e Cinema.
+    cobrindo Literatura e Cinema.
     """
-    return [
-        10_000, 100_000, 1_000_000, 10_000_000, 50_000_000,
-        100_000_000, 500_000_000, 1_000_000_000, 2_000_000_000,
-    ]
+    if pairplot == False:
+        return [
+            10_000, 100_000, 1_000_000, 10_000_000, 50_000_000,
+            100_000_000, 500_000_000, 1_000_000_000, 2_000_000_000,
+        ]
+    else:
+        return [
+            10_000, 100_000, 1_000_000, 10_000_000,
+            250_000_000, 2_000_000_000,
+        ]
 
 
 # ===== Helpers de Aplicação de Ticks =====
@@ -136,7 +142,15 @@ def _aplicar_contagem_log(ax, axis_obj, eixo, escala):
 
 # ===== Formatação de Eixo Numérico =====
 
-def _formatar_eixo_numerico(ax, s_plot, usar_log, tipo_dado, valores_eixo=None, eixo='x'):
+def _formatar_eixo_numerico(
+        ax,
+        s_plot, 
+        usar_log, 
+        tipo_dado, 
+        valores_eixo=None, 
+        eixo='x',
+        pairplot=False
+):
     """Aplica as regras de formatação (dinheiro, notas, contagem) no eixo especificado (X ou Y)."""
 
     axis_obj = ax.yaxis if eixo == 'y' else ax.xaxis
@@ -223,7 +237,7 @@ def _formatar_eixo_numerico(ax, s_plot, usar_log, tipo_dado, valores_eixo=None, 
             ax.tick_params(axis=eixo, rotation=45)
 
         case 'moeda' if usar_log:
-            ticks = _get_entertainment_ticks()
+            ticks = _get_entertainment_ticks(pairplot)
             _aplicar_ticks_fixos(
                 ax, 
                 axis_obj, 
@@ -231,7 +245,7 @@ def _formatar_eixo_numerico(ax, s_plot, usar_log, tipo_dado, valores_eixo=None, 
                 ticks, 
                 [_formatar_dinheiro(x) for x in ticks]
             )
-
         case 'moeda':
             axis_obj.set_major_formatter(ticker.FuncFormatter(_formatar_dinheiro))
             ax.tick_params(axis=eixo, rotation=45)
+          

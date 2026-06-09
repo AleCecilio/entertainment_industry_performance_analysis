@@ -109,21 +109,24 @@ def grafico_pairplot_numericos(
                         usar_log=col_log[x_var].get('usar_log', False),
                         tipo_dado=col_log[x_var].get('tipo_dado'),
                         valores_eixo=col_log[x_var].get('valores_eixo'),
-                        eixo='x'
+                        eixo='x',
+                        pairplot=True
                     )
                 
                 if y_var in col_log:
-                    if col_log[y_var].get('usar_log', False):
-                        ax_atual.set_ylim(bottom=df_numerico[y_var].min())
-                        
-                    _formatar_eixo_numerico(
-                        ax=ax_atual, 
-                        s_plot=df_numerico[y_var], 
-                        usar_log=col_log[y_var].get('usar_log', False),
-                        tipo_dado=col_log[y_var].get('tipo_dado'),
-                        valores_eixo=col_log[y_var].get('valores_eixo'),
-                        eixo='y'
-                    )
+                    if i != j:
+                        if col_log[y_var].get('usar_log', False):
+                            ax_atual.set_ylim(bottom=df_numerico[y_var].min())
+                            
+                        _formatar_eixo_numerico(
+                            ax=ax_atual, 
+                            s_plot=df_numerico[y_var], 
+                            usar_log=col_log[y_var].get('usar_log', False),
+                            tipo_dado=col_log[y_var].get('tipo_dado'),
+                            valores_eixo=col_log[y_var].get('valores_eixo'),
+                            eixo='y',
+                            pairplot=True
+                        )
     
     titulo_real = titulo if titulo else 'Matriz de Correlação Multivariada'
     g.figure.suptitle(titulo_real, y=0.98, fontsize=18, fontweight='bold', color='#2B2D42')

@@ -1,4 +1,5 @@
 import math
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -13,8 +14,22 @@ from ._formatters import _formatar_eixo_numerico
 
 # ===== Helper Interno: Renderização Padronizada de Scatter Individual =====
 
-def _desenhar_scatter_individual(ax, df_local, col_x, col_y):
+def _desenhar_scatter_individual(ax, df_local, col_x, col_y, log_x, log_y):
     """Padroniza a renderização estática de um painel de scatter."""
+
+    usar_log_x = log_x.get('usar_log', False) if log_x else False
+    tipo_dado_x = log_x.get('tipo_dado', None) if log_x else None
+    
+    usar_log_y = log_y.get('usar_log', False) if log_y else False
+    tipo_dado_y = log_y.get('tipo_dado', None) if log_y else None
+
+    if usar_log_x:
+        df_local = df_local[df_local[col_x] > 0]
+    if usar_log_y:
+        df_local = df_local[df_local[col_y] > 0]
+        
+    if df_local.empty:
+        return
 
     sns.scatterplot(
         data=df_local,
@@ -33,10 +48,29 @@ def _desenhar_scatter_individual(ax, df_local, col_x, col_y):
         scatter=False,
         color='#E63946',
         line_kws={'linewidth': 1.5, 'alpha': 0.8},
+        truncate=True,
         ax=ax
     )
 
-    _formatar_eixo_numerico(ax, col_x, fontsize=10, fontweight='bold', color='#4A4E69')
+    for eixo, serie, usar_log, tipo_dado in [
+        ('x', df_local[col_x], usar_log_x, tipo_dado_x),
+        ('y', df_local[col_y], usar_log_y, tipo_dado_y)
+    ]:
+
+        if usar_log:
+            if eixo == 'x':
+                ax.set_xlim(left=serie.min())
+            else:
+                ax.set_ylim(bottom=serie.min())
+
+        _formatar_eixo_numerico(
+            ax=ax,
+            s_plot=serie,
+            usar_log=usar_log,
+            tipo_dado=tipo_dado,
+            eixo=eixo
+        )
+    ax.set_xlabel(col_x.replace('_', ' ').capitalize(), fontsize=10, fontweight='bold', color='#4A4E69')
     ax.grid(axis='both', linestyle=':', alpha=0.5)
     sns.despine(ax=ax)
 
@@ -48,6 +82,7 @@ def grafico_corr_scatter(
     coluna_x,
     coluna_y,
     quant_grafs=1,
+    col_log=None,
     titulo=None,
     tamanho_figura=None,
     polegadas=None,
@@ -90,19 +125,40 @@ def grafico_corr_scatter(
         col_x = lista_x[i]
         df_local = df_plot[[col_x, coluna_y]].dropna()
 
-        _desenhar_scatter_individual(ax, df_local, col_x, coluna_y)
+        log_x = col_log.get(col_x, {}) if col_log else {}
+        log_y = col_log.get(coluna_y, {}) if col_log else {}
+
+        _desenhar_scatter_individual(ax, df_local, col_x, coluna_y, log_x, log_y)
 
         if quant_grafs == 1 or (i % n_cols == 0):
-            ax.set_ylabel(coluna_y.replace('_', ' ').capitalize(), fontsize=10, fontweight='bold', color='#4A4E69')
+            ax.set_ylabel(
+                coluna_y.replace('_', ' ').capitalize(),
+                fontsize=10, 
+                fontweight='bold', 
+                color='#4A4E69'
+            )
         else:
             ax.set_ylabel('')
 
-        if limitar_eixos:
-            ax.set_xlim(0, df_local[col_x].quantile(0.99))
-            ax.set_ylim(0, df_local[coluna_y].quantile(0.99))
+        usar_log_x = log_x.get('usar_log', False)
+        usar_log_y = log_y.get('usar_log', False)
+
+        if usar_log_x:
+            ax.set_xlim(
+                df_local[col_x].min(),
+                df_local[col_x].quantile(0.99)
+            )
         else:
-            ax.set_xlim(0, df_local[col_x].max() * 1.1)
-            ax.set_ylim(0, df_local[coluna_y].max() * 1.1)
+            ax.set_xlim(
+                0,
+                df_local[col_x].quantile(0.99)
+            )
+            
+        if usar_log_y:
+            ax.set_ylim(
+                df_local[coluna_y].min(),
+                df_local[coluna_y].quantile(0.99)
+        )
 
     # ===== Título Global e Rodapé de Observação =====
 
@@ -110,8 +166,26 @@ def grafico_corr_scatter(
     fig.suptitle(titulo_real, fontsize=14, fontweight='bold', color='#2B2D42')
 
     if limitar_eixos:
-        texto_rodape = "* Observação: Os eixos estão limitados ao percentil 99 para mitigar distorções de outliers extremos."
-        fig.text(0.02, -0.02 if n_rows > 1 else -0.05, texto_rodape, fontsize=9, style='italic', color='#4A4E69')
+        colunas_log = [
+            col.replace('_', ' ').title()
+            for col in lista_x + [coluna_y]
+            if col_log.get(col, {}).get('usar_log', False)
+        ]
+
+        texto_rodape = (
+            "* Observação: Os eixos estão limitados ao percentil 99 para mitigar "
+            "distorções de outliers extremos.\n"
+            f"* Escala logarítmica aplicada em: {', '.join(colunas_log)}."
+        )
+
+        fig.text(
+            0.02,
+            -0.02 if n_rows > 1 else -0.05,
+            texto_rodape,
+            fontsize=9,
+            style='italic',
+            color='#4A4E69'
+        )
 
     plt.subplots_adjust(
         left=0.06,

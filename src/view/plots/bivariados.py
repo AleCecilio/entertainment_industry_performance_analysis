@@ -143,22 +143,19 @@ def grafico_corr_scatter(
         usar_log_x = log_x.get('usar_log', False)
         usar_log_y = log_y.get('usar_log', False)
 
-        if usar_log_x:
-            ax.set_xlim(
-                df_local[col_x].min(),
-                df_local[col_x].quantile(0.99)
-            )
-        else:
-            ax.set_xlim(
-                0,
-                df_local[col_x].quantile(0.99)
-            )
-            
+        dados_x = df_local.loc[df_local[col_x] > 0, col_x] if usar_log_x else df_local[col_x]
+        dados_y = df_local.loc[df_local[coluna_y] > 0, coluna_y] if usar_log_y else df_local[coluna_y]
+
+        ax.set_xlim(
+            dados_x.min() if usar_log_x else 0,
+            dados_x.quantile(0.99)
+        )
+
         if usar_log_y:
             ax.set_ylim(
-                df_local[coluna_y].min(),
-                df_local[coluna_y].quantile(0.99)
-        )
+                dados_y.min(),
+                dados_y.quantile(0.99)
+            )
 
     # ===== Título Global e Rodapé de Observação =====
 

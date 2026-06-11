@@ -1,12 +1,20 @@
 from .reshaping import gerar_contingencia
 from .data_quality import resumo_qualidade
 from .cleaners import extrair_dicionario, extrair_lista_dicts
-from .features import explodir_dataset, criar_features_globais, harmonizar_esquema_dados
+
+from .features import (
+    explodir_dataset, 
+    criar_features_globais, 
+    harmonizar_esquema_dados, 
+    adicionar_nova_tag
+)
+
 from .metrics import (
     numeric_summary, 
     categorical_summary, 
     testar_dependencia_categorica,
-    datetime_summary
+    datetime_summary,
+    calcular_metricas_outliers
 )
 
 __all__ = [
@@ -24,10 +32,12 @@ __all__ = [
     "explodir_dataset",
     "criar_features_globais",
     "harmonizar_esquema_dados",
+    "adicionar_nova_tag"
     
     # metrics
     "numeric_summary",
     "categorical_summary",
     "testar_dependencia_categorica",
-    "datetime_summary"
+    "datetime_summary",
+    "calcular_metricas_outliers"
 ]

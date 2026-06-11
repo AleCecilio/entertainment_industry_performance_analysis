@@ -24,6 +24,8 @@ from .multivariados import (
     grafico_coordenadas_paralelas_interativo
 )
 
+from .outliers import plotar_fronteira_outliers
+
 __all__ = [
     # qualidade
     "grafico_percentual_missing_data",
@@ -45,4 +47,7 @@ __all__ = [
     "grafico_bubble_multivariado",
     "grafico_coordenadas_paralelas",
     "grafico_coordenadas_paralelas_interativo"
+
+    # outliers 
+    "plotar_fronteira_outliers"
 ]

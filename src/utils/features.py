@@ -107,3 +107,22 @@ def criar_features_globais(df, nota_maxima):
 
 
 
+def adicionar_nova_tag(
+    df,
+    coluna,
+    nova_coluna,
+    cerca_superior,
+    dfs_exploded=None,
+):
+    if dfs_exploded is None:
+        dfs_exploded = []
+
+    if not isinstance(dfs_exploded, (list, tuple)):
+        dfs_exploded = [dfs_exploded]
+
+    df[nova_coluna] = df[coluna] > cerca_superior
+
+    mapa_bestseller = df.set_index('book_id')[nova_coluna]
+
+    for df_exploded in dfs_exploded:
+        df_exploded[nova_coluna] = df_exploded['book_id'].map(mapa_bestseller)

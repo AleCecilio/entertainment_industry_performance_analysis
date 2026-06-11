@@ -240,3 +240,24 @@ def testar_dependencia_categorica(tabela_contingencia, alpha=0.05):
     return (pd.DataFrame(relatorio)
         .set_index('Hipótese Nula ($H_0$)')
     )
+
+# ==============================================================================
+#   Função de Diagnóstico Matemático (Métricas)
+# ==============================================================================
+
+def calcular_metricas_outliers(df, coluna):
+    """Calcula os limites do IQR e retorna a cerca superior e o DataFrame de outliers."""
+    q1 = df[coluna].quantile(0.25)
+    q3 = df[coluna].quantile(0.75)
+    iqr = q3 - q1
+    cerca_superior = q3 + (1.5 * iqr)
+    
+    outliers = df[df[coluna] > cerca_superior]
+    pct_outliers = (len(outliers) / len(df)) * 100
+    
+    print(f"Primeiro Quartil (Q1): {q1:,.2f}")
+    print(f"Terceiro Quartil (Q3): {q3:,.2f}")
+    print(f"Limite Estatístico (Cerca Superior): {cerca_superior:,.2f}")
+    print(f"Total de Outliers Detectados: {len(outliers)} de {len(df)} ({pct_outliers:.2f}%)")
+    
+    return cerca_superior, outliers

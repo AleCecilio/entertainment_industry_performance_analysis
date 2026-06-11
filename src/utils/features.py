@@ -110,7 +110,7 @@ def criar_features_globais(df, nota_maxima):
 def adicionar_nova_tag(
     df,
     coluna,
-    nova_coluna,
+    id,
     cerca_superior,
     dfs_exploded=None,
 ):
@@ -120,9 +120,9 @@ def adicionar_nova_tag(
     if not isinstance(dfs_exploded, (list, tuple)):
         dfs_exploded = [dfs_exploded]
 
-    df[nova_coluna] = df[coluna] > cerca_superior
+    df['is_elite_engagement'] = df[coluna] > cerca_superior
 
-    mapa_bestseller = df.set_index('book_id')[nova_coluna]
+    mapa_bestseller = df.set_index('id')['is_elite_engagement']
 
     for df_exploded in dfs_exploded:
-        df_exploded[nova_coluna] = df_exploded['book_id'].map(mapa_bestseller)
+        df_exploded['is_elite_engagement'] = df_exploded[id].map(mapa_bestseller)

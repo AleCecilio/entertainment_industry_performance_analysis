@@ -120,9 +120,15 @@ def adicionar_nova_tag(
     if not isinstance(dfs_exploded, (list, tuple)):
         dfs_exploded = [dfs_exploded]
 
-    df['is_elite_engagement'] = df[coluna] > cerca_superior
-
-    mapa_bestseller = df.set_index('id')['is_elite_engagement']
+    mapa_bestseller = (
+        df
+        .drop_duplicates(subset=[id])
+        .set_index(id)['is_elite_engagement']
+    )
 
     for df_exploded in dfs_exploded:
-        df_exploded['is_elite_engagement'] = df_exploded[id].map(mapa_bestseller)
+        df_exploded.merge(
+            mapa_bestseller,
+            on=id,
+            how='left'
+        )

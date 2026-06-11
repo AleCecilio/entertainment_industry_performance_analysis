@@ -101,12 +101,12 @@ def _get_nota_ticks_and_labels(escala=10):
 
 # ===== Ticks Financeiros para a Indústria do Entretenimento =====
 
-def _get_entertainment_ticks(pairplot=False):
+def _get_entertainment_ticks(menos_valores=False, ):
     """
     Marcadores financeiros estratégicos para escalas logarítmicas
     cobrindo Literatura e Cinema.
     """
-    if pairplot == False:
+    if menos_valores == False:
         return [
             10_000, 100_000, 1_000_000, 10_000_000, 50_000_000,
             100_000_000, 500_000_000, 1_000_000_000, 2_000_000_000,
@@ -149,7 +149,7 @@ def _formatar_eixo_numerico(
         tipo_dado, 
         valores_eixo=None, 
         eixo='x',
-        pairplot=False
+        menos_valores=False
 ):
     """Aplica as regras de formatação (dinheiro, notas, contagem) no eixo especificado (X ou Y)."""
 
@@ -237,7 +237,7 @@ def _formatar_eixo_numerico(
             ax.tick_params(axis=eixo, rotation=45)
 
         case 'moeda' if usar_log:
-            ticks = _get_entertainment_ticks(pairplot)
+            ticks = _get_entertainment_ticks(menos_valores)
             _aplicar_ticks_fixos(
                 ax, 
                 axis_obj, 

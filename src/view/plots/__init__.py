@@ -24,7 +24,10 @@ from .multivariados import (
     grafico_coordenadas_paralelas_interativo
 )
 
-from .outliers import plotar_fronteira_outliers
+from .outliers import (
+    grafico_fronteira_outliers, 
+    grafico_distribuicao_financeira
+)
 
 __all__ = [
     # qualidade
@@ -49,5 +52,6 @@ __all__ = [
     "grafico_coordenadas_paralelas_interativo"
 
     # outliers 
-    "plotar_fronteira_outliers"
+    "grafico_fronteira_outliers",
+    "grafico_distribuicao_financeira"
 ]

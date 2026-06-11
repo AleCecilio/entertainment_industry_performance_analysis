@@ -110,7 +110,7 @@ def grafico_pairplot_numericos(
                         tipo_dado=col_log[x_var].get('tipo_dado'),
                         valores_eixo=col_log[x_var].get('valores_eixo'),
                         eixo='x',
-                        pairplot=True
+                        menos_valores=True
                     )
                 
                 if y_var in col_log:
@@ -125,7 +125,7 @@ def grafico_pairplot_numericos(
                             tipo_dado=col_log[y_var].get('tipo_dado'),
                             valores_eixo=col_log[y_var].get('valores_eixo'),
                             eixo='y',
-                            pairplot=True
+                            menos_valores=True
                         )
     
     titulo_real = titulo if titulo else 'Matriz de Correlação Multivariada'

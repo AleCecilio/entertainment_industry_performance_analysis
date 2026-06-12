@@ -1,6 +1,12 @@
 import pandas as pd
 
-def gerar_contingencia(df, coluna_linha, coluna_coluna, top_n_linhas=20, top_n_colunas=20):
+def gerar_contingencia(
+    df, 
+    coluna_linha, 
+    coluna_coluna, 
+    top_n_linhas=20, 
+    top_n_colunas=20
+):
     """
     Gera uma tabela de contingência cruzando duas colunas que contêm listas.
     Aplica filtros de 'Top N' precocemente para evitar explosão de memória.

@@ -114,7 +114,7 @@ def _config_celula_anomala(valor,valores_anomalos):
 #   TEMPLATES DE VISUALIZAÇÃO
 # =====================================================================
 
-def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=None):
+def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=None, sem_cor=False):
     """
     Template geral: aplica cores semânticas por coluna + cabeçalho padronizado.
     Nulos exibidos como '—' em cinza itálico.
@@ -153,10 +153,11 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
         'text-align': 'left'
     })
 
-    for coluna in df_relatorio.columns:
-        categoria = _MAPA_COLUNAS.get(coluna)
-        if categoria and categoria in _CORES:
-            estilo = estilo.set_properties(subset=[coluna], **_CORES[categoria])
+    if not sem_cor:
+        for coluna in df_relatorio.columns:
+            categoria = _MAPA_COLUNAS.get(coluna)
+            if categoria and categoria in _CORES:
+                estilo = estilo.set_properties(subset=[coluna], **_CORES[categoria])
 
     _formatadores_html = {
         col: fmt for col, fmt in _FORMATADORES.items() if col in df_relatorio.columns
@@ -173,7 +174,13 @@ def estilizar_tabela(df, colunas_selecionadas=None, qtd_linhas=None, caption=Non
     )
 
 
-def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de Dados (%)', qtd_linhas=None, caption=None):
+def estilizar_resumo_qualidade(
+        df, 
+        col_quantidade=None, 
+        col_percentual='Perda de Dados (%)', 
+        qtd_linhas=None, 
+        caption=None
+):
     """
     Template para DataFrames de diagnóstico de qualidade (nulos, zeros, listas vazias).
     Aplica gradiente vermelho no percentual e laranja na quantidade.
@@ -218,7 +225,13 @@ def estilizar_resumo_qualidade(df, col_quantidade=None, col_percentual='Perda de
 
 
 
-def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_linhas=None, caption=None):
+def estilizar_metricas(
+    df, 
+    colunas_score=None, 
+    colunas_financeiras=None, 
+    qtd_linhas=None, 
+    caption=None
+):
     """
     Template para análises de performance: aplica gradientes em scores e colunas financeiras.
     """
@@ -259,7 +272,15 @@ def estilizar_metricas(df, colunas_score=None, colunas_financeiras=None, qtd_lin
 
 
 
-def destacar_anomalias(df, mascara, colunas_destaque, colunas_contexto=None,valores_anomalos=None, qtd_linhas=None, caption=None):
+def destacar_anomalias(
+    df, 
+    mascara, 
+    colunas_destaque, 
+    colunas_contexto=None,
+    valores_anomalos=None, 
+    qtd_linhas=None, 
+    caption=None
+):
     """
     Template para inspeção de anomalias: destaca colunas problemáticas em vinho escuro
     e exibe colunas de contexto em tom neutro.

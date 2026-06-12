@@ -42,11 +42,9 @@ _MAPA_COLUNAS = {
     # — Identificadores e Títulos —
     'index': 'identificador', 'level_0': 'identificador',
     'id': 'identificador', 'Book Id': 'identificador', 'book id': 'identificador', 'book_id': 'identificador',
-    'anime_id': 'identificador', 'imdb_id': 'identificador',
-    'isbn': 'identificador', 'isbn13': 'identificador',
-    'title': 'identificador', 'Title': 'identificador',
-    'original_title': 'identificador', 'title_english': 'identificador',
-    'title_japanese': 'identificador', 'name': 'identificador',
+    'imdb_id': 'identificador','isbn': 'identificador', 'isbn13': 'identificador',
+    'title': 'identificador', 'Title': 'identificador','original_title': 'identificador', 
+    'name': 'identificador', 'media_type': 'identificador',
 
     # — Textos Longos e Contexto —
     'overview': 'descritivo', 'tagline': 'descritivo',
@@ -97,7 +95,7 @@ _MAPA_COLUNAS = {
 
     # — Booleanos e Flags —
     'is_franchise': 'booleano', 'adult': 'booleano', 'is_sequel': 'booleano',
-    'video': 'booleano',
+    'video': 'booleano', 'is_elite_engagement': 'booleano',
 
     # --- Mapeamento de Volumes Temporários (Contagens) ---
     'Contagem': 'volume', 'contagem': 'volume', 'count': 'volume', 

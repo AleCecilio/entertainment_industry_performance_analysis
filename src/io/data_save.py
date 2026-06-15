@@ -1,5 +1,7 @@
+from sqlalchemy import create_engine
 from pathlib import Path
 import pandas as pd
+import numpy as np
 
 def _acao_pkl(df,caminho_base):
     # Guarda em Pickle (O seu "Save State" do Python)
@@ -12,6 +14,32 @@ def _acao_csv(df,caminho_base, index):
 
 def _acao_parquet(df, caminho_base, index):
     df.to_parquet(caminho_base.with_suffix('.parquet'), index=index)
+
+def _preparar_dataframe_para_sql(df):
+    """
+    Varre o DataFrame automaticamente, detecta colunas que contêm listas 
+    ou arrays e as converte para texto puro (strings separadas por vírgula).
+    """
+    colunas_modificadas = []
+    
+    for coluna in df.columns:
+        # Pega o primeiro valor que não seja nulo (NaN) para analisar a "cara" do dado
+        amostra_valida = df[coluna].dropna()
+        
+        if not amostra_valida.empty:
+            amostra = amostra_valida.iloc[0]
+            
+            # Se o banco detectar que a amostra é uma lista ou array do numpy...
+            if isinstance(amostra, (list, np.ndarray)):
+                
+                # ...ele converte a coluna inteira. 
+                # O map(str, x) garante que não quebre se houver números dentro da lista
+                df[coluna] = df[coluna].apply(
+                    lambda x: ', '.join(map(str, x)) if isinstance(x, (list, np.ndarray)) else x
+                )
+                colunas_modificadas.append(coluna)
+        
+    return df
 
 
 def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both', index=False):
@@ -53,5 +81,19 @@ def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both
         case _:
             print("Tipo de Arquivo Não Especificado!")
     
+def save_db(df, caminho_db, nome_db):
 
-        
+    df =_preparar_dataframe_para_sql(df)
+    
+    # Configurando o motor do banco de dados (SQLite local)
+    engine = create_engine(caminho_db)
+
+    # Persistindo o Catálogo Unificado no banco
+    df.to_sql(
+        name=nome_db,
+        con=engine,
+        if_exists='replace',
+        index=False
+    )
+
+    print(f"Banco de dados '{nome_db}' estruturado com sucesso")

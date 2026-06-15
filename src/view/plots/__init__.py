@@ -30,6 +30,8 @@ from .outliers import (
 )
 
 __all__ = [
+    "_formatters" ,
+
     # qualidade
     "grafico_percentual_missing_data",
     
@@ -49,7 +51,7 @@ __all__ = [
     "grafico_pairplot_numericos",
     "grafico_bubble_multivariado",
     "grafico_coordenadas_paralelas",
-    "grafico_coordenadas_paralelas_interativo"
+    "grafico_coordenadas_paralelas_interativo",
 
     # outliers 
     "grafico_fronteira_outliers",

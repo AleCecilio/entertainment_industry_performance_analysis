@@ -1,4 +1,3 @@
-from sqlalchemy import create_engine
 from pathlib import Path
 import pandas as pd
 
@@ -13,20 +12,7 @@ def _acao_csv(file_path):
 def _acao_parquet(file_path):
     return pd.read_parquet(file_path)
 
-def _acao_db_sql(caminho_db, alvo, eh_query = False):
-    uri_banco = f"sqlite:///{caminho_db.as_posix()}"
-
-    engine = create_engine(uri_banco)
-
-    query = alvo if eh_query else f"SELECT * FROM {alvo}"
-
-    with engine.connect() as conexao:
-        df = pd.read_sql(query, con=conexao)
-        
-    return df
-
-
-def load_data(file_path, tipo_arquivo, alvo=None, eh_query=False):
+def load_data(file_path, tipo_arquivo):
     
     file_path = Path(file_path)
 
@@ -59,17 +45,6 @@ def load_data(file_path, tipo_arquivo, alvo=None, eh_query=False):
                 print(f"Erro ao carregar Parquet: {e}")
                 return None
 
-        case 'bd_sql':
-            if not alvo:
-                raise ValueError("Para carregar do banco SQL, o parâmetro 'alvo' é obrigatório.")
-            try:
-                df = _acao_db_sql(file_path, alvo, eh_query)
-                print(f"Dados do banco SQL carregados! Formato: {df.shape}")
-                return df
-            except Exception as e:
-                print(f"Erro ao carregar Banco de Dados SQL: {e}")
-                return None
-
         case 'all':
             df_pkl, df_csv, df_parquet, df_sql = None, None, None, None
             
@@ -91,16 +66,8 @@ def load_data(file_path, tipo_arquivo, alvo=None, eh_query=False):
             except Exception as e:
                 print(f"Aviso PARQUET: {e}")
                 
-            try:
-                if alvo:
-                    df_sql = _acao_db_sql(file_path.with_suffix('.db'), alvo, eh_query)
-                    print(f"SQL carregado! Formato: {df_sql.shape}")
-                else:
-                    print("Aviso SQL: Parâmetro 'alvo' ausente. Banco ignorado no carregamento 'all'.")
-            except Exception as e:
-                print(f"Aviso SQL: {e}")
 
-            return df_pkl, df_csv, df_parquet, df_sql 
+            return df_pkl, df_csv, df_parquet
 
         case _:
             raise ValueError(f"Tipo de arquivo '{tipo_arquivo}' não suportado!")

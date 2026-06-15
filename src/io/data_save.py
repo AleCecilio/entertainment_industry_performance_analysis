@@ -41,6 +41,27 @@ def _preparar_dataframe_para_sql(df):
         
     return df
 
+def _acao_db_sql(df, caminho_base, nome_db):
+    """Salva o DataFrame em um banco de dados SQLite."""
+
+    # Prepara as listas para texto (se você tiver essa função separada)
+    df = _preparar_dataframe_para_sql(df)
+    
+    # Pega o WindowsPath, extrai só o texto com as barras certas (.as_posix())
+    # e monta a string exata que o SQLAlchemy exige.
+    uri_banco = f"sqlite:///{caminho_base.as_posix()}.db"
+    
+    # Passa a STRING formatada, não o WindowsPath
+    engine = create_engine(uri_banco)
+    
+    # Salva no banco
+    df.to_sql(
+        name=nome_db,
+        con=engine,
+        if_exists='replace',
+        index=False
+    )
+
 
 def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both', index=False):
     """
@@ -70,30 +91,21 @@ def save_dataset(df, nome_arquivo, pasta="../data/processed", tipo_arquivo='both
         case 'parquet':
             _acao_parquet(df,caminho_base,index)
             print(f"Sucesso! Ficheiro guardado em '{caminho_base}.parquet'")
+        case 'bd_sql':
+            _acao_db_sql(df, caminho_base, nome_arquivo)
+            print(f"Banco de dados '{nome_arquivo}' estruturado com sucesso")
+
         case 'all':
             _acao_pkl(df,caminho_base)
             _acao_csv(df,caminho_base, index)
             _acao_parquet(df,caminho_base,index)
+            _acao_db_sql(df, caminho_base, nome_arquivo)
             print("Sucesso! Ficheiro guardado em")
             print(f"\n{caminho_base}.pkl")
             print(f"\n{caminho_base}.csv") 
             print(f"\n{caminho_base}.parquet")
+            print(f"\n\nBanco de dados estruturado em:")
+            print(f"\n{caminho_base}.db")
         case _:
             print("Tipo de Arquivo Não Especificado!")
     
-def save_db(df, caminho_db, nome_db):
-
-    df =_preparar_dataframe_para_sql(df)
-    
-    # Configurando o motor do banco de dados (SQLite local)
-    engine = create_engine(caminho_db)
-
-    # Persistindo o Catálogo Unificado no banco
-    df.to_sql(
-        name=nome_db,
-        con=engine,
-        if_exists='replace',
-        index=False
-    )
-
-    print(f"Banco de dados '{nome_db}' estruturado com sucesso")

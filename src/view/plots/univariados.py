@@ -152,6 +152,7 @@ def grafico_metricas_categorias(
 def grafico_top_categorias(
         df,
         nome_coluna,
+        coluna_frequencia=None,
         relatorio_df=None,
         top_n=10,
         titulo=None,
@@ -166,16 +167,20 @@ def grafico_top_categorias(
     """
     tamanho_figura, polegadas, width = _set_config_graf(tamanho_figura, polegadas, width)
 
-    resultados = mt._calc_categorical_freq(df, nome_coluna, top_n)
+    if coluna_frequencia:
+        df_plot = df[[nome_coluna, coluna_frequencia]].head(top_n)
+        df_plot.columns = ['Categoria', 'Porcentagem']
+    else:
+        resultados = mt._calc_categorical_freq(df, nome_coluna, top_n)
 
-    if resultados[0] is None:
-        print(f"Erro: A coluna '{nome_coluna}' está vazia ou é inválida.")
-        return
+        if resultados[0] is None:
+            print(f"Erro: A coluna '{nome_coluna}' está vazia ou é inválida.")
+            return
 
-    _, _, top_pct, _ = resultados
+        _, _, top_pct, _ = resultados
 
-    df_plot = top_pct.reset_index()
-    df_plot.columns = ['Categoria', 'Porcentagem']
+        df_plot = top_pct.reset_index()
+        df_plot.columns = ['Categoria', 'Porcentagem']
 
     fig, ax = plt.subplots(figsize=tamanho_figura, dpi=polegadas)
 

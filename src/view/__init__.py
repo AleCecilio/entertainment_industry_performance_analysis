@@ -7,6 +7,9 @@ from .tables import (
     estilizar_matriz_correlacao,
     estilizar_relatorio_categorias
 ) 
+
+
+
 from . import plots
 
 __all__ = [

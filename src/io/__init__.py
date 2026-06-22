@@ -5,7 +5,8 @@ from .db_client import (
     execute_query, 
     delete_database, 
     delete_rows, 
-    delete_table
+    delete_table,
+    add_columns_from_df
 )
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "execute_query",
     'delete_database', 
     'delete_rows', 
-    'delete_table'
+    'delete_table',
+    'add_columns_from_df'
 ]

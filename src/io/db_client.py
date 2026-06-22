@@ -164,3 +164,83 @@ def delete_database(caminho_db):
 
     except Exception as e:
         print(f"\nErro ao remover o banco.\nDetalhes: {e}")
+
+
+def add_columns_from_df(caminho_db, nome_tabela, df, colunas, coluna_chave="id"):
+    """
+    Adiciona uma ou mais colunas de um DataFrame a uma tabela SQLite,
+    relacionando os registros pela coluna chave.
+    """
+    engine = None
+
+    try:
+        caminho_completo = Path(caminho_db)
+        uri_banco = f"sqlite:///{caminho_completo.as_posix()}"
+        engine = create_engine(uri_banco)
+
+        # Mantém apenas a chave e as colunas desejadas
+        df_aux = df[[coluna_chave] + colunas].copy()
+
+        with engine.connect() as conexao:
+
+            # Descobre os tipos das novas colunas
+            for coluna in colunas:
+                valor = df_aux[coluna].dropna()
+
+                if not valor.empty:
+                    amostra = valor.iloc[0]
+
+                    if isinstance(amostra, int):
+                        tipo = "INTEGER"
+                    elif isinstance(amostra, float):
+                        tipo = "REAL"
+                    else:
+                        tipo = "TEXT"
+                else:
+                    tipo = "TEXT"
+
+                # Cria a nova coluna
+                conexao.execute(
+                    text(
+                        f"ALTER TABLE {nome_tabela} "
+                        f"ADD COLUMN {coluna} {tipo}"
+                    )
+                )
+
+            conexao.commit()
+
+        # Atualiza a tabela com os novos valores
+        df_aux.to_sql(
+            "temp_update",
+            con=engine,
+            if_exists="replace",
+            index=False
+        )
+
+        with engine.connect() as conexao:
+            for coluna in colunas:
+                query = f"""
+                    UPDATE {nome_tabela}
+                    SET {coluna} = (
+                        SELECT {coluna}
+                        FROM temp_update
+                        WHERE temp_update.{coluna_chave} = {nome_tabela}.{coluna_chave}
+                    )
+                """
+                conexao.execute(text(query))
+
+            conexao.execute(text("DROP TABLE temp_update"))
+            conexao.commit()
+
+        print(
+            f"\nColunas {colunas} adicionadas com sucesso à tabela '{nome_tabela}'."
+        )
+
+    except Exception as e:
+        print(
+            f"\nErro ao adicionar colunas.\nDetalhes: {e}"
+        )
+
+    finally:
+        if engine is not None:
+            engine.dispose()

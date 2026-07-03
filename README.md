@@ -2,7 +2,7 @@
 
 <br/>
 
-# 🎬📚 Entertainment Industry Performance Analysis
+# Entertainment Industry Performance Analysis
 
 ### Cinema vs. Literatura: Volume, Qualidade e Rentabilidade na Indústria do Entretenimento
 
@@ -119,7 +119,7 @@ Os dois datasets passaram por **harmonização de esquema** (`harmonizar_esquema
 
 ---
 
-## 📓 Pipeline de Notebooks
+## Pipeline de Notebooks
 
 ### `01_data_engineering/` — Engenharia de Dados (15 notebooks)
 
@@ -146,7 +146,7 @@ Os dois datasets passaram por **harmonização de esquema** (`harmonizar_esquema
 
 ---
 
-## 🔩 Módulos (`src/`)
+## Módulos (`src/`)
 
 ```python
 # src/io/
@@ -185,7 +185,7 @@ Olhando para o ROI mediano (o filme "típico", sem o efeito de outliers), fica c
 
 ![Rentabilidade do cinema por década](graficos/graficos_python/cinema_rentabilidade_decada.png)
 
-> 🔑 **Achado-chave:** a década de 1910 teve o maior ROI mediano (3.500%), enquanto os anos 2000 — o auge em volume de produção — registraram o pior ROI mediano (75%). Mais filmes não significou mais lucratividade relativa; significou um mercado mais competitivo e mais caro para se destacar.
+> **Achado-chave:** a década de 1910 teve o maior ROI mediano (3.500%), enquanto os anos 2000 — o auge em volume de produção — registraram o pior ROI mediano (75%). Mais filmes não significou mais lucratividade relativa; significou um mercado mais competitivo e mais caro para se destacar.
 
 ### 2. O Quadrante Mágico: nem toda nota alta é sinônimo de bom negócio
 

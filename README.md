@@ -25,7 +25,7 @@
 
 ---
 
-## 📌 Sobre o Projeto
+## Sobre o Projeto
 
 Este projeto investiga um dilema clássico da indústria do entretenimento: **produzir mais é produzir melhor?** Para responder essa pergunta, foram unificados e analisados dois universos de dados — **Cinema** (TMDB Movies Dataset) e **Literatura** (Goodreads Books) — construindo um **catálogo de mídia unificado** que permite comparar diretamente volume de produção, qualidade percebida pelo público, engajamento e retorno financeiro entre os dois mercados.
 
@@ -35,46 +35,46 @@ Além de código, este README funciona como um **relatório executivo da anális
 
 ---
 
-## 🎯 Objetivos
+## Objetivos
 
 | Etapa | Descrição | Status |
 |-------|-----------|--------|
-| 🧭 Profiling | Diagnóstico inicial de qualidade dos datasets brutos | ✅ |
-| 🧹 Limpeza | Tratamento de nulos, tipos e inconsistências | ✅ |
-| ⚙️ Feature Engineering | Criação de métricas de negócio (score global, engajamento, década, quadrante de popularidade) | ✅ |
-| 📊 EDA Univariada | Distribuições individuais por variável (livros e filmes) | ✅ |
-| 🔗 EDA Bivariada | Relações entre pares de variáveis e testes de dependência categórica | ✅ |
-| 🧬 EDA Multivariada | Correlações, pairplots e coordenadas paralelas | ✅ |
-| 🎯 Tratamento de Outliers | Detecção via IQR e decisão de mitigação por domínio | ✅ |
-| 🗂️ Unificação | Catálogo unificado Livros + Filmes (Parquet + SQLite) | ✅ |
-| 📈 Analytics | 5 notebooks de negócio: engajamento, gêneros, financeiro e resumo executivo | ✅ |
-| 📊 Dashboard | Dashboard interativo em Power BI (4 páginas) | ✅ |
+| Profiling | Diagnóstico inicial de qualidade dos datasets brutos | Concluído |
+| Limpeza | Tratamento de nulos, tipos e inconsistências | Concluído |
+| Feature Engineering | Criação de métricas de negócio (score global, engajamento, década, quadrante de popularidade) | Concluído |
+| EDA Univariada | Distribuições individuais por variável (livros e filmes) | Concluído |
+| EDA Bivariada | Relações entre pares de variáveis e testes de dependência categórica | Concluído |
+| EDA Multivariada | Correlações, pairplots e coordenadas paralelas | Concluído |
+| Tratamento de Outliers | Detecção via IQR e decisão de mitigação por domínio | Concluído |
+| Unificação | Catálogo unificado Livros + Filmes (Parquet + SQLite) | Concluído |
+| Analytics | 5 notebooks de negócio: engajamento, gêneros, financeiro e resumo executivo | Concluído |
+| Dashboard | Dashboard interativo em Power BI (4 páginas) | Concluído |
 
 ---
 
-## 🗂️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 entertainment_industry_performance_analysis/
 │
-├── 📁 data/
+├── data/
 │   ├── raw/                        # Dados originais (Goodreads + TMDB)
 │   ├── interim/                    # Dados limpos e enriquecidos (books/movies)
 │   ├── processed/                  # Datasets master + catálogo unificado (.parquet/.db)
 │   └── powerbi_export/             # Extrações formatadas para o dashboard
 │
-├── 📊 graficos/
+├── graficos/
 │   ├── dashbords/
 │   │   ├── gifs/                   # GIFs demonstrativos do dashboard interativo
 │   │   ├── dashbord_entertainment_industry.pbix
 │   │   └── pdf_dashbord_entertainment_industry.pdf
 │   └── graficos_python/            # Gráficos estáticos gerados em matplotlib/seaborn
 │
-├── 📓 notebooks/
+├── notebooks/
 │   ├── 01_data_engineering/        # 15 notebooks: profiling → limpeza → features → EDA → unificação
 │   └── 02_data_analytics/          # 5 notebooks: analytics de negócio + resumo executivo
 │
-├── 🐍 src/
+├── src/
 │   ├── io/                         # Carga e persistência de dados (parquet, csv, pkl, SQLite)
 │   ├── utils/                      # Qualidade de dados, features, métricas estatísticas, reshaping
 │   └── view/
@@ -89,18 +89,18 @@ entertainment_industry_performance_analysis/
 
 ---
 
-## 🗃️ Datasets
+## Datasets
 
 | Dataset | Fonte | Escopo |
 |---------|-------|--------|
-| 📚 **Goodreads Books** | Goodreads (via CSV com gêneros) | Título, autor, editora, nota, número de avaliações, páginas, idioma, data de publicação, gêneros |
-| 🎬 **TMDB Movies Dataset** | The Movie Database | Título, orçamento, receita, nota, votos, duração, idioma, país, produtora, gêneros, elenco/keywords |
+| **Goodreads Books** | Goodreads (via CSV com gêneros) | Título, autor, editora, nota, número de avaliações, páginas, idioma, data de publicação, gêneros |
+| **TMDB Movies Dataset** | The Movie Database | Título, orçamento, receita, nota, votos, duração, idioma, país, produtora, gêneros, elenco/keywords |
 
 Os dois datasets passaram por **harmonização de esquema** (`harmonizar_esquema_dados`), mapeando colunas heterogêneas (`vote_average` ↔ `average_rating`, `publisher` ↔ `producer_company`, etc.) para um **modelo canônico único**, permitindo a criação do catálogo unificado `unified_media_catalog`.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 <div align="center">
 
@@ -173,7 +173,7 @@ A camada `src/` foi construída com foco em **reutilização entre os dois datas
 
 ---
 
-## 📈 Relatório da Análise — Principais Achados
+## Relatório da Análise — Principais Achados
 
 ### 1. Cinema: a economia se torna volátil com a escala
 
@@ -193,9 +193,9 @@ Cruzando **nota mediana do público** com **ROI mediano** por gênero, surgem qu
 
 ![Quadrante Mágico](graficos/graficos_python/cinema_quadrante_magico.png)
 
-- 🟠 **Baixa nota, alto ROI:** **Horror** é o exemplo mais extremo — nota mediana de apenas 56, mas ROI mediano acima de 150%. É o gênero mais eficiente financeiramente do cinema.
-- 🟢 **Alta nota, alto ROI:** **Animation** e **Documentary** conseguem unir boa crítica e boa rentabilidade — o quadrante mais desejável e mais raro.
-- 🔵 **Alta nota, baixo ROI:** **Drama** e **History** são bem avaliados, mas historicamente pouco lucrativos em termos relativos.
+- **Baixa nota, alto ROI:** **Horror** é o exemplo mais extremo — nota mediana de apenas 56, mas ROI mediano acima de 150%. É o gênero mais eficiente financeiramente do cinema.
+- **Alta nota, alto ROI:** **Animation** e **Documentary** conseguem unir boa crítica e boa rentabilidade — o quadrante mais desejável e mais raro.
+- **Alta nota, baixo ROI:** **Drama** e **History** são bem avaliados, mas historicamente pouco lucrativos em termos relativos.
 
 ### 3. Qualidade por gênero: cinema é mais polarizado que a literatura
 
@@ -212,10 +212,10 @@ Um dos achados mais contra-intuitivos do projeto: aumentar o volume de obras pub
 
 ![Efeito Bolha](graficos/graficos_python/efeito_bolha_vol_obras_vs_publico.png)
 
-- 📚 **Livros:** a linha de tendência é praticamente **plana e estável** (~73–75 pontos), independente do volume de obras do gênero.
-- 🎬 **Filmes:** a linha de tendência também é relativamente estável, mas em um **patamar mais baixo** (~60–62 pontos) e com **maior incerteza** (banda de confiança mais larga) nos extremos de volume.
+- **Livros:** a linha de tendência é praticamente **plana e estável** (~73–75 pontos), independente do volume de obras do gênero.
+- **Filmes:** a linha de tendência também é relativamente estável, mas em um **patamar mais baixo** (~60–62 pontos) e com **maior incerteza** (banda de confiança mais larga) nos extremos de volume.
 
-> 🔑 **Achado-chave:** literatura mantém um "piso de qualidade" mais alto e mais consistente mesmo em gêneros de alto volume, enquanto o cinema opera historicamente em um patamar de avaliação mais baixo.
+> **Achado-chave:** literatura mantém um "piso de qualidade" mais alto e mais consistente mesmo em gêneros de alto volume, enquanto o cinema opera historicamente em um patamar de avaliação mais baixo.
 
 ### 5. Teto de Engajamento: livros geram uma cauda de engajamento muito mais longa
 
@@ -225,35 +225,35 @@ Embora a mediana de votos de filmes e livros seja próxima, a **dispersão (outl
 
 ---
 
-## 📊 Dashboard Interativo (Power BI)
+## Dashboard Interativo (Power BI)
 
 Os principais achados também foram consolidados em um **dashboard interativo de 4 páginas**, permitindo exploração livre por década, mídia e gênero.
 
-### 🕰️ A Máquina do Tempo Financeira da Indústria Cinematográfica
+### A Máquina do Tempo Financeira da Indústria Cinematográfica
 Investimento, faturamento e ROI ajustados pela inflação (base 2023), navegável por década.
 
 ![Análise Financeira do Cinema](graficos/dashbords/gifs/Análise%20Financeira%20Cinema%20(NB%2018).gif)
 
-### 🧬 Dinâmica de Gêneros: Volume Produtivo vs. Percepção de Qualidade
+###  Dinâmica de Gêneros: Volume Produtivo vs. Percepção de Qualidade
 Comparação interativa entre livros e filmes, com o "Efeito Bolha" navegável por mídia.
 
 ![Dinâmica de Gêneros](graficos/dashbords/gifs/Dinâmica%20de%20Gêneros%20(NB%2017).gif)
 
-### 🌍 Panorama do Mercado: Distribuição e Engajamento
+### Panorama do Mercado: Distribuição e Engajamento
 Volume de catálogo, total de votos e distribuição da qualidade — Literatura vs. Cinema.
 
 ![Distribuição e Engajamento](graficos/dashbords/gifs/Distribuição%20(NB%2016).gif)
 
-### 🎯 Rentabilidade vs. Qualidade: O Quadrante Mágico do Cinema
+### Rentabilidade vs. Qualidade: O Quadrante Mágico do Cinema
 Versão interativa e filtrável por gênero do quadrante mágico apresentado na seção de achados.
 
 ![Quadrante Mágico Interativo](graficos/dashbords/gifs/Quadrante%20Mágico%20(NB%2019).gif)
 
-> 📄 O arquivo `.pbix` original e um export em PDF de todas as páginas estão disponíveis em `graficos/dashbords/`.
+> O arquivo `.pbix` original e um export em PDF de todas as páginas estão disponíveis em `graficos/dashbords/`.
 
 ---
 
-## 🧠 Conclusões Gerais
+## Conclusões Gerais
 
 1. **Escala não é sinônimo de eficiência:** tanto no cinema quanto na literatura, mais volume de produção nem sempre se traduz em mais qualidade ou mais retorno relativo — o cinema, em especial, ficou proporcionalmente menos rentável à medida que se tornou uma indústria de massa.
 2. **Cada mídia tem sua própria lógica de qualidade:** literatura apresenta notas mais estáveis e homogêneas entre gêneros; cinema é mais polarizado, com gêneros de nicho (Documentary, Animation) superando gêneros mainstream em avaliação.
@@ -262,7 +262,7 @@ Versão interativa e filtrável por gênero do quadrante mágico apresentado na 
 
 ---
 
-## ▶️ Como Executar
+## Como Executar
 
 ### 1. Clone o repositório
 
@@ -299,12 +299,11 @@ Abra `graficos/dashbords/dashbord_entertainment_industry.pbix` no Power BI Deskt
 
 ---
 
-## 🔮 Próximos Passos
+## Possíveis Melhorias
 
-- [ ] 🎞️ Incorporar dados de streaming (ex: engajamento por plataforma) para atualizar a análise de rentabilidade além do modelo tradicional de bilheteria
-- [ ] 🌎 Expandir a análise de idiomas/países para mapear padrões regionais de consumo
-- [ ] 🤖 Testar modelos preditivos de ROI por gênero com base nas features criadas (`global_score`, `votes_per_year`, `popularity_tier`)
-- [ ] 📡 Publicar o dashboard Power BI online para acesso público
+- [ ] Incorporar dados de streaming (ex: engajamento por plataforma) para atualizar a análise de rentabilidade além do modelo tradicional de bilheteria
+- [ ] Expandir a análise de idiomas/países para mapear padrões regionais de consumo
+- [ ] Testar modelos preditivos de ROI por gênero com base nas features criadas (`global_score`, `votes_per_year`, `popularity_tier`)
 
 ---
 
@@ -324,5 +323,5 @@ Abra `graficos/dashbords/dashbord_entertainment_industry.pbix` no Power BI Deskt
 ---
 
 <div align="center">
-  <sub>Feito com 🤍, muito Python e algumas doses de café mineiro</sub>
+  <sub>Feito com esforço, Python e algumas doses de café mineiro e chá matte</sub>
 </div>

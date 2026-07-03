@@ -1,0 +1,152 @@
+﻿├── data
+│   ├── interim
+│   │   ├── books
+│   │   │   ├── goodreads_books_cleaned.parquet
+│   │   │   ├── goodreads_books_enriched.parquet
+│   │   │   └── goodreads_books_exploded.parquet
+│   │   └── movies
+│   │       ├── movies_cleaned.parquet
+│   │       ├── movies_company.parquet
+│   │       ├── movies_countries.parquet
+│   │       ├── movies_enriched.parquet
+│   │       ├── movies_genres.parquet
+│   │       └── movies_languages.parquet
+│   ├── powerbi_export
+│   │   ├── cinema_financial_decade.xlsx
+│   │   ├── cinema_financial_genres.xlsx
+│   │   ├── unified_media_catalog.xlsx
+│   │   ├── unified_media_genres.xlsx
+│   │   └── unified_media_volume_score_genres.xlsx
+│   ├── processed
+│   │   ├── books
+│   │   │   ├── goodreads_books_genres_master.parquet
+│   │   │   └── goodreads_books_master.parquet
+│   │   ├── movies
+│   │   │   ├── movies_company_master.parquet
+│   │   │   ├── movies_countries_master.parquet
+│   │   │   ├── movies_genres_master.parquet
+│   │   │   ├── movies_languages_master.parquet
+│   │   │   └── movies_master.parquet
+│   │   ├── unified_media_catalog.db
+│   │   └── unified_media_catalog.parquet
+│   └── raw
+│       ├── books
+│       │   └── Goodreads_books_with_genres.csv
+│       └── movies
+│           └── movies_dataset
+│               ├── credits.csv
+│               ├── keywords.csv
+│               ├── links.csv
+│               ├── links_small.csv
+│               ├── movies_metadata.csv
+│               ├── ratings.csv
+│               └── ratings_small.csv
+├── graficos
+│   ├── dashbords
+│   │   ├── gifs
+│   │   │   ├── Análise Financeira Cinema (NB 18).gif
+│   │   │   ├── Dinâmica de Gêneros (NB 17).gif
+│   │   │   ├── Distribuição (NB 16).gif
+│   │   │   └── Quadrante Mágico (NB 19).gif
+│   │   ├── dashbord_entertainment_industry.pbix
+│   │   └── pdf_dashbord_entertainment_industry.pdf
+│   └── graficos_python
+│       ├── cinema_blockbuster_decada_vs_impacto_economico.png
+│       ├── cinema_notas_10_generos_mais_produzidos.png
+│       ├── cinema_quadrante_magico.png
+│       ├── cinema_rentabilidade_decada.png
+│       ├── efeito_bolha_vol_obras_vs_publico.png
+│       ├── literatura_notas_10_generos_mais_produzidos.png
+│       └── teto_engajamento_cine_vs_lit.png
+├── notebooks
+│   ├── 01_data_engineering
+│   │   ├── 01_initial_profiling_books.ipynb
+│   │   ├── 02_initial_profiling_movies.ipynb
+│   │   ├── 03_cleaning_books.ipynb
+│   │   ├── 04_cleaning_movies.ipynb
+│   │   ├── 05_feature_engineering_books.ipynb
+│   │   ├── 06_feature_engineering_movies.ipynb
+│   │   ├── 07_eda_univariada_books.ipynb
+│   │   ├── 08_eda_univariada_movies.ipynb
+│   │   ├── 09_eda_bivariada_books.ipynb
+│   │   ├── 10_eda_bivariada_movies.ipynb
+│   │   ├── 11_eda_multivariada_books.ipynb
+│   │   ├── 12_eda_multivariada_movies.ipynb
+│   │   ├── 13_feature_engineering_outliers_books.ipynb
+│   │   ├── 14_feature_engineering_outliers_movies.ipynb
+│   │   └── 15_unified_media_catalog.ipynb
+│   └── 02_data_analytics
+│       ├── 16_analytics_engagement_distribution.ipynb
+│       ├── 17_analytics_genre_dynamics.ipynb
+│       ├── 18_analytics_financial_timeline.ipynb
+│       ├── 19_analytics_financial_genres.ipynb
+│       └── 20_executive_summary.ipynb
+├── src
+│   ├── __pycache__
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── data_loader.cpython-313.pyc
+│   │   ├── data_save.cpython-313.pyc
+│   │   └── style.cpython-313.pyc
+│   ├── io
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── data_loader.cpython-313.pyc
+│   │   │   ├── data_save.cpython-313.pyc
+│   │   │   └── db_client.cpython-313.pyc
+│   │   ├── __init__.py
+│   │   ├── data_loader.py
+│   │   ├── data_save.py
+│   │   └── db_client.py
+│   ├── utils
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── cleaners.cpython-313.pyc
+│   │   │   ├── data_quality.cpython-313.pyc
+│   │   │   ├── features.cpython-313.pyc
+│   │   │   ├── metrics.cpython-313.pyc
+│   │   │   ├── parsers.cpython-313.pyc
+│   │   │   ├── reshaping.cpython-313.pyc
+│   │   │   └── transformers.cpython-313.pyc
+│   │   ├── __init__.py
+│   │   ├── cleaners.py
+│   │   ├── data_quality.py
+│   │   ├── features.py
+│   │   ├── metrics.py
+│   │   └── reshaping.py
+│   ├── view
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── _style_config.cpython-313.pyc
+│   │   │   ├── plots.cpython-313.pyc
+│   │   │   ├── style_config.cpython-313.pyc
+│   │   │   └── tables.cpython-313.pyc
+│   │   ├── plots
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   ├── _config.cpython-313.pyc
+│   │   │   │   ├── _formatters.cpython-313.pyc
+│   │   │   │   ├── bivariados.cpython-313.pyc
+│   │   │   │   ├── bivariados_cat_vs_num.cpython-313.pyc
+│   │   │   │   ├── multivariados.cpython-313.pyc
+│   │   │   │   ├── outliers.cpython-313.pyc
+│   │   │   │   ├── qualidade.cpython-313.pyc
+│   │   │   │   ├── univariados.cpython-313.pyc
+│   │   │   │   ├── univariados_categoricos.cpython-313.pyc
+│   │   │   │   └── univariados_numericos.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── _config.py
+│   │   │   ├── _formatters.py
+│   │   │   ├── bivariados.py
+│   │   │   ├── multivariados.py
+│   │   │   ├── outliers.py
+│   │   │   ├── qualidade.py
+│   │   │   └── univariados.py
+│   │   ├── __init__.py
+│   │   ├── _style_config.py
+│   │   └── tables.py
+│   └── __init__.py
+├── .gitattributes
+├── .gitignore
+├── estrutura.txt
+├── LICENSE
+└── README.md
